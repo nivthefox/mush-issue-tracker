@@ -303,7 +303,7 @@ think [ansi(h, ISSUES:)] Setting up queries.
     WHERE `[v(DATA`TABLE_PREFIX)]issue_member`.`member`="%0"
 -
 
-QUERY`SELECT_ISSUE [v(ISS`GLOBAL)]=
+&QUERY`SELECT_ISSUE [v(ISS`GLOBAL)]=
     SELECT `id`,`title`,`category`,`owner`,`status`,UNIX_TIMESTAMP(`created_at`),UNIX_TIMESTAMP(`due_at`)
     FROM `[v(DATA`TABLE_PREFIX)]issue`
     %1
