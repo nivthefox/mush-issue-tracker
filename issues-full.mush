@@ -32,7 +32,7 @@ think [ansi(hc, ISSUES:)] Checking current installation.
     }, {
         think [ansi(hc, ISSUES:)] No previous installation found. Installing.;
         &ISS`GLOBAL %#=[create(\[LIT\] Loki's Issue Tracker,10)];
-        &DATA`TABLE_PREFIX [v(ISS_GLOBAL)]=lit_;
+        &DATA`TABLE_PREFIX [v(ISS`GLOBAL)]=lit_;
         &ISS`CATEGORY_PARENT %#=[create(\[LIT\] Loki's Issue Category Parent,10)];
         @tel [v(ISS`CATEGORY_PARENT)]=[v(ISS`GLOBAL)];
         @VC [v(ISS`GLOBAL)]=[v(ISS`CATEGORY_PARENT)];
