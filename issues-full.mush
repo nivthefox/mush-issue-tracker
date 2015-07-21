@@ -151,13 +151,13 @@ $+category/delete *=*:
     @assert u(FUNCTION`IS_SYSOP, %#) = {@pemit %#=Permission denied.};
     think setq(0, trim(secure(%0)));
     @assert isdbref(setr(1, u(FUNCTION`FIND_CATEGORY, %q0))) = {@pemit %#=You must specify a valid category to delete.};
-    think setq(1, trim(secure(%1)));
-    @assert isdbref(setr(1, u(FUNCTION`FIND_CATEGORY, %q1))) = {@pemit %#=You must specify a valid category to transfer active issues to.}
-    think setq(2, name(%q0));
-    @set %q0=DESTROY_OK;
-    @nuke %q0;
-    think sql(u(QUERY`UPDATE_ISSUES, `bucket`="%q1", WHERE `bucket` = "%q0"));
-    @pemit %#=You have deleted the category named %q2 and transferred all issues to [name(%q1)].;
+    think setq(2, trim(secure(%1)));
+    @assert isdbref(setr(3, u(FUNCTION`FIND_CATEGORY, %q2))) = {@pemit %#=You must specify a valid category to transfer active issues to.};
+    think setq(4, name(%q0));
+    @set %q1=DESTROY_OK;
+    @nuke %q1;
+    think sql(u(QUERY`UPDATE_ISSUES, `bucket`="%q3", WHERE `bucket` = "%q1"));
+    @pemit %#=You have deleted the category named %q4 and transferred all issues to [name(%q3)].;
 -
 
 &COMMAND`CATEGORIES [v(ISS`GLOBAL)]=
