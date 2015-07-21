@@ -55,7 +55,7 @@ think [ansi(hc, ISSUES:)] Configuring MySQL Tables.
         think setq(0, get(v(ISS`GLOBAL)/DATA`TABLE_PREFIX));
         think sql(lit(
             CREATE TABLE `%q0issue`
-            \(
+            (
                 `id` INT(11) UNSIGNED AUTO_INCREMENT,
                 `title` VARCHAR(30) NOT NULL,
                 `category` CHAR(5) NOT NULL,
@@ -64,17 +64,17 @@ think [ansi(hc, ISSUES:)] Configuring MySQL Tables.
                 `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 `due_at` TIMESTAMP,
 
-                PRIMARY KEY \(`id`\),
-                INDEX \(`title`\(10\)\),
-                INDEX \(`category`\),
-                INDEX \(`owner`\),
-                INDEX \(`status`\)
-            \)
+                PRIMARY KEY (`id`),
+                INDEX (`title`(10)),
+                INDEX (`category`),
+                INDEX (`owner`),
+                INDEX (`status`)
+            )
         ));
 
         think sql(lit(
             CREATE TABLE `%q0issue_note`
-            \(
+            (
                 `id` INT(11) UNSIGNED AUTO_INCREMENT,
                 `issue_id` INT(11) UNSIGNED,
                 `author` CHAR(10) NOT NULL,
@@ -82,23 +82,23 @@ think [ansi(hc, ISSUES:)] Configuring MySQL Tables.
                 `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 `deleted_at` TIMESTAMP DEFAULT NULL,
 
-                PRIMARY KEY \(`id`\),
-                INDEX \(`issue_id`\),
-                INDEX \(`author`\)
-            \)
+                PRIMARY KEY (`id`),
+                INDEX (`issue_id`),
+                INDEX (`author`)
+            )
         ));
 
         think sql(lit(
             CREATE TABLE `%q0issue_member`
-            \(
+            (
                 `id` INT(11) UNSIGNED AUTO_INCREMENT,
                 `issue_id` INT(11) UNSIGNED,
                 `member` CHAR(10) NOT NULL,
                 
-                PRIMARY KEY \(`id`\),
-                INDEX \(`issue_id`\),
-                INDEX \(`member`\)
-            \)
+                PRIMARY KEY (`id`),
+                INDEX (`issue_id`),
+                INDEX (`member`)
+            )
         ));
     };
 }
