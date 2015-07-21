@@ -176,9 +176,10 @@ $+issue *=*:
     @assert u(FUNCTION`IS_USER)={@pemit %#=Permission denied.};
     think setq(0, secure(%0));
     think setq(1, edit(objeval(%#, %1), ", &quot;));
-    think setq(2, sql(u(QUERY`CREATE_ISSUE, `title`="%0"\, `category`="[v(DATA`DEFAULT_CATEGORY)]"\, `status`="[v(DATA`DEFAULT_STATUS)]")));
-    think setq(3, sql(u(QUERY`CREATE_ISSUE_NOTE, `issue_id`=%q2\, `author`="%#"\, `note`="%q1")));
-    think setq(4, sql(u(QUERY`CREATE_ISSUE_MEMBER, `issue_id`=%q2\, `member`="%#")));
+    think sql(u(QUERY`CREATE_ISSUE, `title`="%0"\, `category`="[v(DATA`DEFAULT_CATEGORY)]"\, `status`="[v(DATA`DEFAULT_STATUS)]"));
+    think setq(2, sql(u(QUERY`LAST_INSERT_ID)));
+    think sql(u(QUERY`CREATE_ISSUE_NOTE, `issue_id`=%q2\, `author`="%#"\, `note`="%q1"));
+    think sql(u(QUERY`CREATE_ISSUE_MEMBER, `issue_id`=%q2\, `member`="%#"));
     @pemit %#=u(FUNCTION`PREFIX) You have submitted a new issue #%q2: %q0.
 -
 
@@ -246,20 +247,21 @@ think [ansi(h, ISSUES:)] Setting up queries.
 
 &QUERY`CREATE_ISSUE [v(ISS`GLOBAL)]=
     INSERT INTO `[v(DATA`TABLE_PREFIX)]issue`
-    SET %0; 
-    SELECT LAST_INSERT_ID() FROM `[v(DATA`TABLE_PREFIX)]issue`
+    SET %0
 -
 
 &QUERY`CREATE_ISSUE_MEMBER [v(ISS`GLOBAL)]=
     INSERT INTO `[v(DATA`TABLE_PREFIX)]issue_member`
-    SET %0; 
-    SELECT LAST_INSERT_ID() FROM `[v(DATA`TABLE_PREFIX)]issue_member`
+    SET %0
 -
 
 &QUERY`CREATE_ISSUE_NOTE [v(ISS`GLOBAL)]=
     INSERT INTO `[v(DATA`TABLE_PREFIX)]issue_note`
-    SET %0; 
-    SELECT LAST_INSERT_ID() FROM `[v(DATA`TABLE_PREFIX)]issue_note`
+    SET %0
+-
+
+&QUERY`LAST_INSERT_ID [v(ISS`GLOBAL)]=
+    SELECT last_insert_id()
 -
 
 &QUERY`UPDATE_ISSUES [v(ISS`GLOBAL)]=
@@ -267,6 +269,7 @@ think [ansi(h, ISSUES:)] Setting up queries.
     SET %0 
     %1
 -
+
 
 #
 # Views
