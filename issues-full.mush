@@ -126,7 +126,7 @@ $+category/create *=*:
     @assert u(FUNCTION`IS_SYSOP, %#) = {@pemit %#=Permission denied.};
     think setq(0, trim(secure(%0)));
     think setq(1, trim(secure(%1)));
-    @assert u(FUNCTION`FIND_CATEGORY, %q0) = {@pemit %#=There is already a category by that name.};
+    @break isdbref(u(FUNCTION`FIND_CATEGORY, %q0)) = {@pemit %#=There is already a category by that name.};
     @assert lte(strlen(%q0), 5) = {@pemit %#=The name of a category is limited to five letters.};
     think setq(2, create(ucstr(%q0), 10));
     @tel %q2=%vC;
@@ -151,9 +151,9 @@ $+category/create *=*:
 $+category/delete *=*:
     @assert u(FUNCTION`IS_SYSOP, %#) = {@pemit %#=Permission denied.};
     think setq(0, trim(secure(%0)));
-    @break isdbref(setr(1, u(FUNCTION`FIND_CATEGORY, %q0))) = {@pemit %#=You must specify a valid category to delete.};
+    @assert isdbref(setr(1, u(FUNCTION`FIND_CATEGORY, %q0))) = {@pemit %#=You must specify a valid category to delete.};
     think setq(1, trim(secure(%0)));
-    @break isdbref(setr(1, u(FUNCTION`FIND_CATEGORY, %q1))) = {@pemit %#=You must specify a valid category to transfer active jobs to.}
+    @assert isdbref(setr(1, u(FUNCTION`FIND_CATEGORY, %q1))) = {@pemit %#=You must specify a valid category to transfer active jobs to.}
     think setq(2, name(%q0));
     @set %q0=DESTROY_OK;
     @nuke %q0;
