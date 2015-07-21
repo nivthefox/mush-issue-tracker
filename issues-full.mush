@@ -252,8 +252,8 @@ think [ansi(hc, ISSUES:)] Setting up views.
     [ljust(name(%0), 9)]
     [ljust(left(get(%0/DESC), 45), 46)]
     [ljust(ifelse(elock(%0/SPEECH, %#), Yes, No), 7)]
-    [center(sql(u(QUERY`COUNT_ISSUES_IN_CATEGORY, WHERE `category` = "%0")), 7)]
-    [center(sql(u(QUERY`COUNT_ISSUES_IN_CATEGORY, WHERE `category` = "%0" AND `due_at` <= NOW\(\))), 8)]
+    [center(sql(u(QUERY`COUNT_ISSUES, WHERE `category` = "%0")), 7)]
+    [center(sql(u(QUERY`COUNT_ISSUES, WHERE `category` = "%0" AND `due_at` <= NOW\(\))), 8)]
 -
 
 #
