@@ -51,7 +51,7 @@ think [ansi(hc, ISSUES:)] Configuring MySQL Tables.
     @assert sql(SELECT 1) = {think [ansi(hc, ISSUES:)] ERROR - Unable to reach MySQL database. This installation will be incomplete.};
     @assert get(v(ISS`GLOBAL)/VERSION) =
     {
-        think [ansi(hc, ISSUES:)] Creating new tables.
+        think [ansi(hc, ISSUES:)] Creating new tables.;
         think setq(0, get(v(ISS`GLOBAL)/DATA`TABLE_PREFIX));
         think sql(lit(
             CREATE TABLE `%q0issue`
