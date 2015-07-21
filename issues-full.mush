@@ -231,6 +231,7 @@ think [ansi(hc, ISSUES:)] Setting up queries.
 # Views
 #
 think [ansi(hc, ISSUES:)] Setting up views.
+-
 
 &VIEW`CATEGORY_LIST_HEADER [v(ISS`GLOBAL)]=
     [ansi(h,
