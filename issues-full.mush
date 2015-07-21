@@ -20,9 +20,9 @@ think [ansi(hc, ISSUES:)] Checking current installation.
     isdbref(setr(0, 
         switch(
             first(version()),
-            PennMUSH,lsearch(all,eobjects,\[strmatch(name(##), \[LIT\] Loki's Issue Tracker)\]),
-            RhostMUSH,searchng(object=\[LIT\] Loki's Issue Tracker),
-            search(object=\[LIT\] Loki's Issue Tracker)
+            PennMUSH,lsearch(all,eobjects,\[strmatch(name(##), %[LIT%] Loki's Issue Tracker)\]),
+            RhostMUSH,searchng(object=%[LIT%] Loki's Issue Tracker),
+            search(object=%[LIT%] Loki's Issue Tracker)
         )
     )) = 
     1, {
@@ -166,6 +166,7 @@ $+categories:
     @assert u(FUNCTION`IS_USER)={@pemit %#=Permission denied.};
     @pemit %#=u(FUNCTION`HEADER, Categories);
     think setq(0, sortby(%!/SORT`BY_NAME, lcon(%vC)));
+    @pemit %#=u(VIEW`CATEGORY_LIST_HEADER);
     @pemit %#=iter(%q0, u(VIEW`CATEGORY_LIST, ##), %b, %r);
     @pemit %#=u(FUNCTION`FOOTER);
 -
