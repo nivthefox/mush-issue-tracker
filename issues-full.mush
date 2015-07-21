@@ -196,6 +196,17 @@ $+issue *:
     @pemit %#=u(FUNCTION`FOOTER);
 -
 
+&COMMAND`ISSUE/ADD [v(ISS`GLOBAL)]=
+$+issue/add *=*:
+    @assert u(FUNCTION`IS_USER, %#)={@pemit %#=Permission denied.};
+    think setq(0, secure(trim(%0)));
+    @assert u(FUNCTION`IS_ISSUE, %q0)={@pemit %#=Invalid issue.};
+    @assert cor(u(FUNCTION`IS_ADMIN, %#), u(FUNCTION`IS_MEMBER, %#, %q0))={@pemit %#=You do not have access to that issue.};
+    think setq(1, edit(objeval(%#, trim(%1)), ", &quot;));
+    think sql(u(QUERY`CREATE_ISSUE_NOTE, `issue_id`=%q0\, `author`="%#"\, `note`="%q1"));
+    @pemit %#=u(FUNCTION`PREFIX) You have added a note to issue #%q0.;
+-
+
 &COMMAND`ISSUES [v(ISS`GLOBAL)]=
 $+issues:
     @assert u(FUNCTION`IS_USER)={@pemit %#=Permission denied.};
@@ -446,7 +457,7 @@ think [ansi(h, ISSUES:)] Setting up views.
 
 &VIEW`ISSUE_NOTE [v(ISS`GLOBAL)]=
     [setq(0, sql(u(QUERY`SELECT_NOTE, WHERE `id`=%0), |))]
-    [repeat(-, 78)]%r
+    [repeat(-, sub(68, strlen(elements(%q0, 1, |))))] <#[elements(%q0, 1, |)]> -----%r
     [ifelse(
         not(elements(%q0, 6, |)),
         
