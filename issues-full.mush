@@ -184,17 +184,17 @@ $+categories:
     @pemit %#=u(FUNCTION`FOOTER);
 -
 
-# +issue <title>=<body>
+# +issue/create <title>=<body>
 &COMMAND`ISSUE_CREATE [v(ISS`GLOBAL)]=
-$+issue *=*:
+$+issue/create *=*:
     @assert u(FUNCTION`IS_USER, %#)={@pemit %#=Permission denied.};
-    think setq(0, secure(trim(%0));
+    think setq(0, secure(trim(%0)));
     think setq(1, edit(objeval(%#, trim(%1)), ", &quot;));
     think sql(u(QUERY`CREATE_ISSUE, `title`="%0"\, `category`="[v(DATA`DEFAULT_CATEGORY)]"\, `status`="[v(DATA`DEFAULT_STATUS)]"));
     think setq(2, sql(u(QUERY`LAST_INSERT_ID)));
     think sql(u(QUERY`CREATE_ISSUE_NOTE, `issue_id`=%q2\, `author`="%#"\, `note`="%q1"));
     think sql(u(QUERY`CREATE_ISSUE_MEMBER, `issue_id`=%q2\, `member`="%#"));
-    @pemit %#=u(FUNCTION`PREFIX) You have submitted a new issue #%q2: %q0.
+    @pemit %#=u(FUNCTION`PREFIX) You have submitted a new issue #%q2: %q0.;
     @trigger %!/TRIGGER`ISSUE_CREATED=%#, %q2;
 -
 
