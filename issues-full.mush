@@ -58,7 +58,7 @@ think [ansi(h, ISSUES:)] Configuring MySQL Tables.
             CREATE TABLE `%q0issue`
             (
                 `id` INT(11) UNSIGNED AUTO_INCREMENT,
-                `title` VARCHAR(30) NOT NULL,
+                `title` VARCHAR(60) NOT NULL,
                 `category` CHAR(5) NOT NULL,
                 `owner` CHAR(10) NOT NULL,
                 `status` CHAR(10) NOT NULL,
@@ -80,6 +80,7 @@ think [ansi(h, ISSUES:)] Configuring MySQL Tables.
                 `issue_id` INT(11) UNSIGNED,
                 `author` CHAR(10) NOT NULL,
                 `note` TINYTEXT NOT NULL,
+                `type` CHAR(10) NOT NULL,
                 `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 `deleted_at` TIMESTAMP,
 
@@ -101,6 +102,19 @@ think [ansi(h, ISSUES:)] Configuring MySQL Tables.
                 INDEX (`member`)
             )
         ));
+
+        think sql(lit(
+            CREATE TABLE `%q0issue_read`
+            {
+                `issue_id` INT(11) UNSIGNED,
+                `note_id` INT(11) UNSIGNED,
+                `reader` CHAR(10) NOT NULL,
+
+                PRIMARY KEY (`issue_id`,`note_id`,`member`),
+                INDEX (`issue_id`),
+                INDEX (`member`)
+            }
+        ));
     };
 }
 -
@@ -112,16 +126,13 @@ think [ansi(h, ISSUES:)] Configuring MySQL Tables.
 think [ansi(h, ISSUES:)] Setting up commands.
 -
 
-@adisconnect [v(ISS`GLOBAL)]=
-    @pemit me=[ifelse(u(FUNCTION`IS_USER, %#), set(%#, LAST_CONN:[secs()]),)]
--
-
 @aconnect [v(ISS`GLOBAL)]=
     @assert default(%#/ISS`LOGIN,1);
     @assert u(FUNCTION`IS_USER, %#);
     @force %#=+issues/new;
 -
 
+# +category/create <short>=<desc>
 &COMMAND`CATEGORY/CREATE [v(ISS`GLOBAL)]=
 $+category/create *=*:
     @assert u(FUNCTION`IS_SYSOP, %#) = {@pemit %#=Permission denied.};
@@ -147,6 +158,7 @@ $+category/create *=*:
     }
 -
 
+# +category/delete <category>=<new category>
 &COMMAND`CATEGORY/DELETE [v(ISS`GLOBAL)]=
 $+category/delete *=*:
     @assert u(FUNCTION`IS_SYSOP, %#) = {@pemit %#=Permission denied.};
@@ -161,6 +173,7 @@ $+category/delete *=*:
     @pemit %#=You have deleted the category named %q4 and transferred all issues to [name(%q3)].;
 -
 
+# +categories
 &COMMAND`CATEGORIES [v(ISS`GLOBAL)]=
 $+categories:
     @assert u(FUNCTION`IS_USER, %#)={@pemit %#=Permission denied.};
@@ -171,6 +184,7 @@ $+categories:
     @pemit %#=u(FUNCTION`FOOTER);
 -
 
+# +issue <title>=<body>
 &COMMAND`ISSUE_CREATE [v(ISS`GLOBAL)]=
 $+issue *=*:
     @assert u(FUNCTION`IS_USER, %#)={@pemit %#=Permission denied.};
@@ -181,8 +195,10 @@ $+issue *=*:
     think sql(u(QUERY`CREATE_ISSUE_NOTE, `issue_id`=%q2\, `author`="%#"\, `note`="%q1"));
     think sql(u(QUERY`CREATE_ISSUE_MEMBER, `issue_id`=%q2\, `member`="%#"));
     @pemit %#=u(FUNCTION`PREFIX) You have submitted a new issue #%q2: %q0.
+    @trigger %!/TRIGGER`ISSUE_CREATED=%#, %q2;
 -
 
+# +issue <id>
 &COMMAND`ISSUE_VIEW [v(ISS`GLOBAL)]=
 $+issue *:
     @assert u(FUNCTION`IS_USER, %#)={@pemit %#=Permission denied.};
@@ -192,10 +208,12 @@ $+issue *:
     @pemit %#=u(FUNCTION`HEADER, Issue %q0);
     @pemit %#=ulocal(VIEW`ISSUE_SUMMARY, %q0);
     think setq(1, u(FUNCTION`GET_NOTES, %q0));
-    @pemit %#=list(%q1, ulocal(VIEW`ISSUE_NOTE, ##));
+    @pemit %#=list(%q1, ulocal(VIEW`ISSUE_NOTE, ##, %#));
     @pemit %#=u(FUNCTION`FOOTER);
+    @trigger %!/TRIGGER`ISSUE_VIEWED=%#, %q0;
 -
 
+# +issue/add <id>=<note>
 &COMMAND`ISSUE/ADD [v(ISS`GLOBAL)]=
 $+issue/add *=*:
     @assert u(FUNCTION`IS_USER, %#)={@pemit %#=Permission denied.};
@@ -205,12 +223,14 @@ $+issue/add *=*:
     think setq(1, edit(objeval(%#, trim(%1)), ", &quot;));
     think sql(u(QUERY`CREATE_ISSUE_NOTE, `issue_id`=%q0\, `author`="%#"\, `note`="%q1"));
     @pemit %#=u(FUNCTION`PREFIX) You have added a note to issue #%q0.;
+    @trigger %!/TRIGGER`NOTE_ADDED=%#, %q0, ADD;
 -
 
+# +issues
 &COMMAND`ISSUES [v(ISS`GLOBAL)]=
 $+issues:
     @assert u(FUNCTION`IS_USER)={@pemit %#=Permission denied.};
-    think setq(0, u(FUNCTION`GET_VISIBLE_ISSUES));
+    think setq(0, u(FUNCTION`GET_VISIBLE_ISSUES, %#));
     @pemit %#=u(FUNCTION`HEADER, Issues);
     @pemit %#=ulocal(VIEW`ISSUE_LIST_HEADER);
     @pemit %#=list(%q0, ulocal(VIEW`ISSUE_LIST, ##));
@@ -224,6 +244,7 @@ $+issues:
 think [ansi(h, ISSUES:)] Setting up functions.
 -
 
+# (find_category, <category>)
 &FUNCTION`FIND_CATEGORY [v(ISS`GLOBAL)]=
     localize(ifelse(
         or(
@@ -235,10 +256,12 @@ think [ansi(h, ISSUES:)] Setting up functions.
     ))
 -
 
+# (footer)
 &FUNCTION`FOOTER [v(ISS`GLOBAL)]=
     repeat(=, 78)
 -
 
+# (get_date, <timestamp>)
 &FUNCTION`GET_DATE [v(ISS`GLOBAL)]=
     [ifelse(
         gt(%0, 0), 
@@ -247,6 +270,7 @@ think [ansi(h, ISSUES:)] Setting up functions.
     )]
 -
 
+# (get_members, <issue_id>)
 &FUNCTION`GET_MEMBERS [v(ISS`GLOBAL)]=
     iter(
         sql(u(QUERY`SELECT_MEMBER, WHERE `issue_id`=%0), `, |),
@@ -256,6 +280,7 @@ think [ansi(h, ISSUES:)] Setting up functions.
     )
 -
 
+# (get_notes, <issue_id>)
 &FUNCTION`GET_NOTES [v(ISS`GLOBAL)]=
     iter(
         sql(u(QUERY`SELECT_NOTE, WHERE `issue_id`=%0), `, |),
@@ -265,30 +290,36 @@ think [ansi(h, ISSUES:)] Setting up functions.
     )
 -
 
+# (get_visible_issues, <dbref>)
 &FUNCTION`GET_VISIBLE_ISSUES [v(ISS`GLOBAL)]=
     ifelse(
-        u(FUNCTION`IS_ADMIN, %#),
-        sql(u(QUERY`SELECT_ISSUES_BY_CATEGORY, filter(FUNCTION`HAS_ACCESS, lcon(%vC), %b, %b, %#,))),
-        sql(u(QUERY`SELECT_ISSUES_BY_MEMBER, %#))
+        u(FUNCTION`IS_ADMIN, %0),
+        sql(u(QUERY`SELECT_ISSUES_BY_CATEGORY, filter(FUNCTION`HAS_ACCESS, lcon(%vC), %b, %b, %0,))),
+        sql(u(QUERY`SELECT_ISSUES_BY_MEMBER, %0))
     )
 -
 
+# (has_access, <cat dbref>, <user dbref>)
 &FUNCTION`HAS_ACCESS [v(ISS`GLOBAL)]=
     elock(%0/SPEECH, %1)
 -
 
+# (header, <text>)
 &FUNCTION`HEADER [v(ISS`GLOBAL)]=
     center(%b[ansi(h,%0)]%b, 78, =)
 -
 
+# (is_admin, <dbref>)
 &FUNCTION`IS_ADMIN [v(ISS`GLOBAL)]=
     hasflag(%0, STAFF)
 -
 
+# (is_issue, <issue_id>)
 &FUNCTION`IS_ISSUE [v(ISS`GLOBAL)]=
     t(strlen(sql(u(QUERY`SELECT_ISSUE, WHERE `id` = %0))))
 -
 
+# (is_member, <issue_id>, <dbref>)
 &FUNCTION`IS_MEMBER [v(ISS`GLOBAL)]=
     t(member(
         sql(u(QUERY`SELECT_MEMBERS, WHERE `issue_id` = %0)), 
@@ -296,6 +327,7 @@ think [ansi(h, ISSUES:)] Setting up functions.
     ))
 -
 
+# (is_sysop, <dbref>)
 &FUNCTION`IS_SYSOP [v(ISS`GLOBAL)]=
     switch(
         first(version()),
@@ -304,6 +336,7 @@ think [ansi(h, ISSUES:)] Setting up functions.
     )
 -
 
+# (is_user, <dbref>)
 &FUNCTION`IS_USER [v(ISS`GLOBAL)]=
     not(switch(
         first(version()),
@@ -312,6 +345,16 @@ think [ansi(h, ISSUES:)] Setting up functions.
     ))
 -
 
+# (is_visible_note, <type>, <author>, <dbref>)
+&FUNCTION`IS_VISIBLE_NOTE [v(ISS`GLOBAL)]=
+    cor(
+        eq(%0, MAIL),
+        cand(eq(%0, ADD), %1, %2))
+        cand(eq(%0, ADD), u(FUNCTION`IS_ADMIN, %2)),
+    )
+-
+
+# (owner_name, <dbref>)
 &FUNCTION`OWNER_NAME [v(ISS`GLOBAL)]=
     ifelse(
         isdbref(%0), 
@@ -320,10 +363,12 @@ think [ansi(h, ISSUES:)] Setting up functions.
     )
 -
 
+# (prefix)
 &FUNCTION`PREFIX [v(ISS`GLOBAL)]=
     ansi(h, Issues:)
 -
 
+# (by_name, <dbref>, <dbref>)
 &SORT`BY_NAME [v(ISS`GLOBAL)]=
     comp(name(%0),name(%1))
 -
@@ -457,15 +502,22 @@ think [ansi(h, ISSUES:)] Setting up views.
 
 &VIEW`ISSUE_NOTE [v(ISS`GLOBAL)]=
     [setq(0, sql(u(QUERY`SELECT_NOTE, WHERE `id`=%0), |))]
-    [repeat(-, sub(68, strlen(elements(%q0, 1, |))))] <#[elements(%q0, 1, |)]> -----%r
-    [ifelse(
-        not(elements(%q0, 6, |)),
-        
-        [ljust([ansi(h, Author:)] [name(elements(%q0, 3, |))], 39)]
-        [rjust([ansi(h, Date:)] [u(FUNCTION`GET_DATE, elements(%q0, 5, |))], 39)]%r
-        [edit(elements(%q0, 4, |), &quot;, ")],
 
-        [ansi(hx, Comment by [name(elements(%q0, 3, |))] deleted on [u(FUNCTION`GET_DATE, elements(%q0, 6, |))].)]
+    [ifelse(
+        cor(%1, ulocal(FUNCTION`IS_VISIBLE_NOTE, elements(%q0, 5, |), elements(%q0, 3, |), %1)),
+        
+        [repeat(-, sub(68, strlen(elements(%q0, 1, |))))] <#[elements(%q0, 1, |)]> -----%r
+        [ifelse(
+            not(elements(%q0, 7, |)),
+            
+            [ljust([ansi(h, Author:)] [name(elements(%q0, 3, |))], 39)]
+            [rjust([ansi(h, Date:)] [u(FUNCTION`GET_DATE, elements(%q0, 6, |))], 39)]%r
+            [edit(elements(%q0, 4, |), &quot;, ")],
+
+            [ansi(hx, Comment by [name(elements(%q0, 3, |))] deleted on [u(FUNCTION`GET_DATE, elements(%q0, 7, |))].)]
+        )],
+
+        [@@(Nothing to see here)]    
     )]
 -
 
