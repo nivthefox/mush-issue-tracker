@@ -43,61 +43,64 @@ think [ansi(hc, ISSUES:)] Checking current installation.
 # Tables
 #
 
-think [ansi(hc, ISSUES:)] Creating MySQL Tables.
+think [ansi(hc, ISSUES:)] Configuring MySQL Tables.
 -
 
-@assert sql(SELECT 1) = {think [ansi(hc, ISSUES:)] ERROR - Unable to reach MySQL database. This installation will be incomplete.};
-@assert get(v(ISS`GLOBAL)/VERSION) =
+@wait 0= 
 {
-    @@ New installation.;
-    think setq(0, get(v(ISS`GLOBAL)/DATA`TABLE_PREFIX));
-    think sql(lit(
-        CREATE TABLE `%q0issue`
-        \(
-            `id` INT(11) UNSIGNED AUTO_INCREMENT,
-            `title` VARCHAR(30) NOT NULL,
-            `category` CHAR(5) NOT NULL,
-            `owner` CHAR(10) NOT NULL,
-            `status` CHAR(10) NOT NULL,
-            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            `due_at` TIMESTAMP,
+    @assert sql(SELECT 1) = {think [ansi(hc, ISSUES:)] ERROR - Unable to reach MySQL database. This installation will be incomplete.};
+    @assert get(v(ISS`GLOBAL)/VERSION) =
+    {
+        think [ansi(hc, ISSUES:)] Creating new tables.
+        think setq(0, get(v(ISS`GLOBAL)/DATA`TABLE_PREFIX));
+        think sql(lit(
+            CREATE TABLE `%q0issue`
+            \(
+                `id` INT(11) UNSIGNED AUTO_INCREMENT,
+                `title` VARCHAR(30) NOT NULL,
+                `category` CHAR(5) NOT NULL,
+                `owner` CHAR(10) NOT NULL,
+                `status` CHAR(10) NOT NULL,
+                `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                `due_at` TIMESTAMP,
 
-            PRIMARY KEY \(`id`\),
-            INDEX \(`title`\(10\)\),
-            INDEX \(`category`\),
-            INDEX \(`owner`\),
-            INDEX \(`status`\)
-        \)
-    ));
+                PRIMARY KEY \(`id`\),
+                INDEX \(`title`\(10\)\),
+                INDEX \(`category`\),
+                INDEX \(`owner`\),
+                INDEX \(`status`\)
+            \)
+        ));
 
-    think sql(lit(
-        CREATE TABLE `%q0issue_note`
-        \(
-            `id` INT(11) UNSIGNED AUTO_INCREMENT,
-            `issue_id` INT(11) UNSIGNED,
-            `author` CHAR(10) NOT NULL,
-            `note` TINYTEXT NOT NULL,
-            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            `deleted_at` TIMESTAMP DEFAULT NULL,
+        think sql(lit(
+            CREATE TABLE `%q0issue_note`
+            \(
+                `id` INT(11) UNSIGNED AUTO_INCREMENT,
+                `issue_id` INT(11) UNSIGNED,
+                `author` CHAR(10) NOT NULL,
+                `note` TINYTEXT NOT NULL,
+                `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                `deleted_at` TIMESTAMP DEFAULT NULL,
 
-            PRIMARY KEY \(`id`\),
-            INDEX \(`issue_id`\),
-            INDEX \(`author`\)
-        \)
-    ));
+                PRIMARY KEY \(`id`\),
+                INDEX \(`issue_id`\),
+                INDEX \(`author`\)
+            \)
+        ));
 
-    think sql(lit(
-        CREATE TABLE `%q0issue_member`
-        \(
-            `id` INT(11) UNSIGNED AUTO_INCREMENT,
-            `issue_id` INT(11) UNSIGNED,
-            `member` CHAR(10) NOT NULL,
-            
-            PRIMARY KEY \(`id`\),
-            INDEX \(`issue_id`\),
-            INDEX \(`member`\)
-        \)
-    ));
+        think sql(lit(
+            CREATE TABLE `%q0issue_member`
+            \(
+                `id` INT(11) UNSIGNED AUTO_INCREMENT,
+                `issue_id` INT(11) UNSIGNED,
+                `member` CHAR(10) NOT NULL,
+                
+                PRIMARY KEY \(`id`\),
+                INDEX \(`issue_id`\),
+                INDEX \(`member`\)
+            \)
+        ));
+    };
 }
 -
 
