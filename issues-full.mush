@@ -375,19 +375,19 @@ think [ansi(h, ISSUES:)] Setting up queries.
 &QUERY`SELECT_ISSUE [v(ISS`GLOBAL)]=
     SELECT `id`,`title`,`category`,`owner`,`status`,UNIX_TIMESTAMP(`created_at`),UNIX_TIMESTAMP(`due_at`)
     FROM `[v(DATA`TABLE_PREFIX)]issue`
-    %1
+    %0
 -
 
 &QUERY`SELECT_MEMBER [v(ISS`GLOBAL)]=
     SELECT `id`,`issue_id`,`member`
     FROM `[v(DATA`TABLE_PREFIX)]issue_member`
-    %1
+    %0
 -
 
 &QUERY`SELECT_NOTE [v(ISS`GLOBAL)]=
     SELECT `id`,`issue_id`,`author`,`note`,UNIX_TIMESTAMP(`created_at`),UNIX_TIMESTAMP(`deleted_at`)
     FROM `[v(DATA`TABLE_PREFIX)]issue_note`
-    %1
+    %0
 -
 
 &QUERY`UPDATE_ISSUES [v(ISS`GLOBAL)]=
