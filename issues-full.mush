@@ -3,13 +3,13 @@
 # For new installations
 # 
 
-think [repeat(=, 78)]%r%r[center(ansi(hc,Setting up Loki's Issue Tracker v0.9.0), 78)]%r%r[repeat(=, 78)]
+think [repeat(=, 78)]%r%r[center(ansi(h,Setting up Loki's Issue Tracker v0.9.0), 78)]%r%r[repeat(=, 78)]
 -
 
 @set me=QUIET
 -
 
-think [ansi(hc, ISSUES:)] Checking current installation.
+think [ansi(h, ISSUES:)] Checking current installation.
 -
 
 #
@@ -26,11 +26,11 @@ think [ansi(hc, ISSUES:)] Checking current installation.
         )
     )) = 
     1, {
-        think [ansi(hc, ISSUES:)] Current installation found. Updating.;
+        think [ansi(h, ISSUES:)] Current installation found. Updating.;
         &ISS`GLOBAL %#=%q0;
         &ISS`CATEGORY_PARENT %#=[get(%q0/VC)];
     }, {
-        think [ansi(hc, ISSUES:)] No previous installation found. Installing.;
+        think [ansi(h, ISSUES:)] No previous installation found. Installing.;
         &ISS`GLOBAL %#=[create(\[LIT\] Loki's Issue Tracker,10)];
         &DATA`TABLE_PREFIX [v(ISS`GLOBAL)]=lit_;
         &ISS`CATEGORY_PARENT %#=[create(\[LIT\] Loki's Issue Category Parent,10)];
@@ -44,15 +44,15 @@ think [ansi(hc, ISSUES:)] Checking current installation.
 # Tables
 #
 
-think [ansi(hc, ISSUES:)] Configuring MySQL Tables.
+think [ansi(h, ISSUES:)] Configuring MySQL Tables.
 -
 
 @wait 0= 
 {
-    @assert sql(SELECT 1) = {think [ansi(hc, ISSUES:)] ERROR - Unable to reach MySQL database. This installation will be incomplete.};
+    @assert sql(SELECT 1) = {think [ansi(h, ISSUES:)] ERROR - Unable to reach MySQL database. This installation will be incomplete.};
     @assert get(v(ISS`GLOBAL)/VERSION) =
     {
-        think [ansi(hc, ISSUES:)] Creating new tables.;
+        think [ansi(h, ISSUES:)] Creating new tables.;
         think setq(0, get(v(ISS`GLOBAL)/DATA`TABLE_PREFIX));
         think sql(lit(
             CREATE TABLE `%q0issue`
@@ -109,7 +109,7 @@ think [ansi(hc, ISSUES:)] Configuring MySQL Tables.
 # Commands
 #
 
-think [ansi(hc, ISSUES:)] Setting up commands.
+think [ansi(h, ISSUES:)] Setting up commands.
 -
 
 @adisconnect [v(ISS`GLOBAL)]=
@@ -171,11 +171,22 @@ $+categories:
     @pemit %#=u(FUNCTION`FOOTER);
 -
 
+&COMMAND`ISSUE [v(ISS`GLOBAL)]=
+$+issue *=*:
+    @assert u(FUNCTION`IS_USER)={@pemit %#=Permission denied.};
+    think setq(0, secure(%0));
+    think setq(1, edit(objeval(%#, %1), ", &quot;));
+    think setq(2, sql(u(QUERY`CREATE_ISSUE, `title`="%0"\, `category`="[v(DATA`DEFAULT_CATEGORY)]"\, `status`="[v(DATA`DEFAULT_STATUS)]")));
+    think setq(3, sql(u(QUERY`CREATE_ISSUE_NOTE, `issue_id`=%q2\, `author`="%#"\, `note`="%q1")));
+    think setq(4, sql(u(QUERY`CREATE_ISSUE_MEMBER, `issue_id`=%q2\, `member`="%#")));
+    @pemit %#=u(FUNCTION`PREFIX) You have submitted a new issue #%q2: %q0.
+-
+
 #
 # Functions
 #
 
-think [ansi(hc, ISSUES:)] Setting up functions.
+think [ansi(h, ISSUES:)] Setting up functions.
 -
 
 &FUNCTION`FIND_CATEGORY [v(ISS`GLOBAL)]=
@@ -213,6 +224,10 @@ think [ansi(hc, ISSUES:)] Setting up functions.
     )
 -
 
+&FUNCTION`PREFIX [v(ISS`GLOBAL)]=
+    ansi(h, Issues:)
+-
+
 &SORT`BY_NAME [v(ISS`GLOBAL)]=
     comp(name(%0),name(%1))
 -
@@ -220,13 +235,31 @@ think [ansi(hc, ISSUES:)] Setting up functions.
 #
 # Queries
 #
-think [ansi(hc, ISSUES:)] Setting up queries.
+think [ansi(h, ISSUES:)] Setting up queries.
 -
 
 &QUERY`COUNT_ISSUES [v(ISS`GLOBAL)]=
     SELECT COUNT(id) AS `count` 
     FROM `[v(DATA`TABLE_PREFIX)]issue`
     %1
+-
+
+&QUERY`CREATE_ISSUE [v(ISS`GLOBAL)]=
+    INSERT INTO `[v(DATA`TABLE_PREFIX)}issue`
+    SET %0; 
+    SELECT LAST_INSERT_ID() FROM `[v(DATA`TABLE_PREFIX)}issue`
+-
+
+&QUERY`CREATE_ISSUE_MEMBER [v(ISS`GLOBAL)]=
+    INSERT INTO `[v(DATA`TABLE_PREFIX)}issue_member`
+    SET %0; 
+    SELECT LAST_INSERT_ID() FROM `[v(DATA`TABLE_PREFIX)}issue_member`
+-
+
+&QUERY`CREATE_ISSUE_NOTE [v(ISS`GLOBAL)]=
+    INSERT INTO `[v(DATA`TABLE_PREFIX)}issue_note`
+    SET %0; 
+    SELECT LAST_INSERT_ID() FROM `[v(DATA`TABLE_PREFIX)}issue_note`
 -
 
 &QUERY`UPDATE_ISSUES [v(ISS`GLOBAL)]=
@@ -238,7 +271,7 @@ think [ansi(hc, ISSUES:)] Setting up queries.
 #
 # Views
 #
-think [ansi(hc, ISSUES:)] Setting up views.
+think [ansi(h, ISSUES:)] Setting up views.
 -
 
 &VIEW`CATEGORY_LIST_HEADER [v(ISS`GLOBAL)]=
@@ -260,7 +293,7 @@ think [ansi(hc, ISSUES:)] Setting up views.
 # Finalizing
 #
 
-think [ansi(hc, ISSUES:)] Finalizing installation.
+think [ansi(h, ISSUES:)] Finalizing installation.
 -
 
 &VERSION [v(ISS`GLOBAL)]=0.1.0
@@ -269,5 +302,5 @@ think [ansi(hc, ISSUES:)] Finalizing installation.
 @set me=!quiet
 -
 
-think [ansi(hc, ISSUES:)] Done.
+think [ansi(h, ISSUES:)] Done.
 -
