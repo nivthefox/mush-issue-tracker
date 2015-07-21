@@ -93,11 +93,10 @@ think [ansi(h, ISSUES:)] Configuring MySQL Tables.
         think sql(lit(
             CREATE TABLE `%q0issue_member`
             (
-                `id` INT(11) UNSIGNED AUTO_INCREMENT,
                 `issue_id` INT(11) UNSIGNED,
                 `member` CHAR(10) NOT NULL,
                 
-                PRIMARY KEY (`id`),
+                PRIMARY KEY (`issue_id`, `member`),
                 INDEX (`issue_id`),
                 INDEX (`member`)
             )
@@ -192,7 +191,7 @@ $+issue/create *=*:
     think setq(1, edit(objeval(%#, trim(%1)), ", &quot;));
     think sql(u(QUERY`CREATE_ISSUE, `title`="%0"\, `category`="[v(DATA`DEFAULT_CATEGORY)]"\, `status`="[v(DATA`DEFAULT_STATUS)]"));
     think setq(2, sql(u(QUERY`LAST_INSERT_ID)));
-    think sql(u(QUERY`CREATE_ISSUE_NOTE, `issue_id`=%q2\, `author`="%#"\, `note`="%q1"));
+    think sql(u(QUERY`CREATE_ISSUE_NOTE, `issue_id`=%q2\, `author`="%#"\, `note`="%q1"\, `type`="CREATE"));
     think sql(u(QUERY`CREATE_ISSUE_MEMBER, `issue_id`=%q2\, `member`="%#"));
     @pemit %#=u(FUNCTION`PREFIX) You have submitted a new issue #%q2: %q0.;
     @trigger %!/TRIGGER`ISSUE_CREATED=%#, %q2;
@@ -221,7 +220,7 @@ $+issue/add *=*:
     @assert u(FUNCTION`IS_ISSUE, %q0)={@pemit %#=Invalid issue.};
     @assert cor(u(FUNCTION`IS_ADMIN, %#), u(FUNCTION`IS_MEMBER, %#, %q0))={@pemit %#=You do not have access to that issue.};
     think setq(1, edit(objeval(%#, trim(%1)), ", &quot;));
-    think sql(u(QUERY`CREATE_ISSUE_NOTE, `issue_id`=%q0\, `author`="%#"\, `note`="%q1"));
+    think sql(u(QUERY`CREATE_ISSUE_NOTE, `issue_id`=%q0\, `author`="%#"\, `note`="%q1"\, `type`="ADD"));
     @pemit %#=u(FUNCTION`PREFIX) You have added a note to issue #%q0.;
     @trigger %!/TRIGGER`NOTE_ADDED=%#, %q0, ADD;
 -
@@ -348,9 +347,9 @@ think [ansi(h, ISSUES:)] Setting up functions.
 # (is_visible_note, <type>, <author>, <dbref>)
 &FUNCTION`IS_VISIBLE_NOTE [v(ISS`GLOBAL)]=
     cor(
-        eq(%0, MAIL),
-        cand(eq(%0, ADD), %1, %2))
-        cand(eq(%0, ADD), u(FUNCTION`IS_ADMIN, %2)),
+        strmatch(MAIL, %0),
+        cand(member(ADD CREATE, %0), eq(%1, %2)),
+        cand(member(ADD CREATE, %0), u(FUNCTION`IS_ADMIN, %2)),
     )
 -
 
@@ -430,7 +429,7 @@ think [ansi(h, ISSUES:)] Setting up queries.
 -
 
 &QUERY`SELECT_NOTE [v(ISS`GLOBAL)]=
-    SELECT `id`,`issue_id`,`author`,`note`,UNIX_TIMESTAMP(`created_at`),UNIX_TIMESTAMP(`deleted_at`)
+    SELECT `id`,`issue_id`,`author`,`note`,`type`,UNIX_TIMESTAMP(`created_at`),UNIX_TIMESTAMP(`deleted_at`)
     FROM `[v(DATA`TABLE_PREFIX)]issue_note`
     %0
 -
@@ -444,7 +443,7 @@ think [ansi(h, ISSUES:)] Setting up queries.
 # (update_member_read, <issue_id>, <note_id>, <dbref>)
 &QUERY`UPDATE_MEMBER_READ [v(ISS`GLOBAL)]=
     REPLACE INTO `[v(DATA`TABLE_PREFIX)]issue_read`
-    SET `issue_id`=%0, `note_id`=%1, `reader`=%2
+    SET `issue_id`=%0, `note_id`=%1, `reader`="%2"
 -
 
 #
@@ -455,9 +454,12 @@ think [ansi(h, ISSUES:)] Setting up triggers.
 
 # ISSUE_VIEWED=<issue_id>, <dbref>
 &TRIGGER`ISSUE_VIEWED [v(ISS`GLOBAL)]=
-    think sql(u(QUERY`UPDATE_MEMBER_READ, %0, last(u(FUNCTION`GET_NOTES, %0)), %1));
+    think sql(u(QUERY`UPDATE_MEMBER_READ, %1, last(u(FUNCTION`GET_NOTES, %1)), %0));
 -
 
+&TRIGGER`NOTE_ADDED [v(ISS`GLOBAL)]=
+    think sql(u(QUERY`UPDATE_MEMBER_READ, %1, last(u(FUNCTION`GET_NOTES, %1)), %0));
+-
     
 #
 # Views
@@ -528,7 +530,8 @@ think [ansi(h, ISSUES:)] Setting up views.
         [ifelse(
             not(elements(%q0, 7, |)),
             
-            [ljust([ansi(h, Author:)] [name(elements(%q0, 3, |))], 39)]
+            [ljust([ansi(h, Author:)] [name(elements(%q0, 3, |))], 20)]
+            [ljust(elements(%q0, 5, |), 19)]
             [rjust([ansi(h, Date:)] [u(FUNCTION`GET_DATE, elements(%q0, 6, |))], 39)]%r
             [edit(elements(%q0, 4, |), &quot;, ")],
 
