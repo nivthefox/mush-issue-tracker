@@ -353,7 +353,7 @@ think [ansi(h, ISSUES:)] Setting up views.
     [ljust(%0, 5)]
     [ljust(name(elements(%q0,3,|)), 6)]
     [ljust(left(elements(%q0,2,|),29),30)]
-    [ljust(left(name(elements(%q0,4,|)),15),16)]
+    [ljust(ifelse(isdbref(setr(1, elements(%q0,4,|))), left(name(%q1),15), ansi(hr,Unassigned)),16)]
     [ljust(elements(%q0,5,|),11)]
     [ljust(elements(convsecs(elements(%q0,7,|)), 3 2 5),10)]
 -
