@@ -1,0 +1,262 @@
+#
+# Loki's Issue Tracker
+# For new installations
+# 
+
+think [repeat(=, 78)]%r%r[center(ansi(hc,Setting up Loki's Issue Tracker v0.9.0), 78)]%r%r[repeat(=, 78)]
+-
+
+@set me=QUIET
+-
+
+think [ansi(hc, ISSUES:)] Checking current installation.
+-
+
+#
+# Try to find Issues Global.
+#
+
+@switch 
+    isdbref(setr(0, 
+        switch(
+            first(version())
+            PennMUSH,lsearch(all,eobjects,\[strmatch(name(##), \[LIT\] Loki's Issue Tracker)\]),
+            RhostMUSH,searchng(object=\[LIT\] Loki's Issue Tracker),
+            search(object=\[LIT\] Loki's Issue Tracker)
+        )
+    )) = 
+    1, {
+        think [ansi(hc, ISSUES:)] Current installation found. Updating.;
+        &ISS`GLOBAL %#=%q0;
+        &ISS`CATEGORY_PARENT %#=[get(%q0/VC)];
+    }, {
+        think [ansi(hc, ISSUES:)] No previous installation found. Installing.;
+        &ISS`GLOBAL %#=[create(\[LIT\] Loki's Issue Tracker,10)];
+        &DATA`TABLE_PREFIX [v(ISS_GLOBAL)]=lit_;
+        &ISS`CATEGORY_PARENT %#=[create(\[LIT\] Loki's Issue Category Parent,10)];
+        @tel [v(ISS`CATEGORY_PARENT)]=[v(ISS`GLOBAL)];
+        @VC [v(ISS`GLOBAL)]=[v(ISS`CATEGORY_PARENT)];
+    }
+-
+
+#
+# Tables
+#
+
+think [ansi(hc, ISSUES:)] Creating MySQL Tables.
+-
+
+@assert sql(SELECT 1) = {think [ansi(hc, ISSUES:)] ERROR - Unable to reach MySQL database. This installation will be incomplete.};
+@assert get(v(ISS`GLOBAL)/VERSION) =
+{
+    @@ New installation.;
+    think setq(0, get(v(ISS`GLOBAL)/DATA`TABLE_PREFIX));
+    think sql(lit(
+        CREATE TABLE `%q0issue`
+        \(
+            `id` INT(11) UNSIGNED AUTO_INCREMENT,
+            `title` VARCHAR(30) NOT NULL,
+            `category` CHAR(5) NOT NULL,
+            `owner` CHAR(10) NOT NULL,
+            `status` CHAR(10) NOT NULL,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            `due_at` TIMESTAMP,
+
+            PRIMARY KEY \(`id`\),
+            INDEX \(`title`\(10\)\),
+            INDEX \(`category`\),
+            INDEX \(`owner`\),
+            INDEX \(`status`\)
+        \)
+    ));
+
+    think sql(lit(
+        CREATE TABLE `%q0issue_note`
+        \(
+            `id` INT(11) UNSIGNED AUTO_INCREMENT,
+            `issue_id` INT(11) UNSIGNED,
+            `author` CHAR(10) NOT NULL,
+            `note` TINYTEXT NOT NULL,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            `deleted_at` TIMESTAMP DEFAULT NULL,
+
+            PRIMARY KEY \(`id`\),
+            INDEX \(`issue_id`\),
+            INDEX \(`author`\)
+        \)
+    ));
+
+    think sql(lit(
+        CREATE TABLE `%q0issue_member`
+        \(
+            `id` INT(11) UNSIGNED AUTO_INCREMENT,
+            `issue_id` INT(11) UNSIGNED,
+            `member` CHAR(10) NOT NULL,
+            
+            PRIMARY KEY \(`id`\),
+            INDEX \(`issue_id`\),
+            INDEX \(`member`\)
+        \)
+    ));
+}
+-
+
+#
+# Commands
+#
+
+think [ansi(hc, ISSUES:)] Setting up commands.
+-
+
+@adisconnect [v(ISS`GLOBAL)]=
+    @pemit me=[ifelse(u(FUNCTION`IS_USER, %#), set(%#, LAST_CONN:[secs()]),)]
+-
+
+@aconnect [v(ISS`GLOBAL)]=
+    @assert default(%#/ISS`LOGIN,1);
+    @assert u(FUNCTION`IS_USER, %#);
+    @force %#=+issues/new;
+-
+
+&COMMAND`CATEGORY/CREATE [v(ISS`GLOBAL)]=
+$+category/create *=*:
+    @assert u(FUNCTION`IS_SYSOP, %#) = {@pemit %#=Permission denied.};
+    think setq(0, trim(secure(%0)));
+    think setq(1, trim(secure(%1)));
+    @assert u(FUNCTION`FIND_CATEGORY, %q0) = {@pemit %#=There is already a category by that name.};
+    @assert lte(strlen(%q0), 5) = {@pemit %#=The name of a category is limited to five letters.};
+    think setq(2, create(ucstr(%q0), 10));
+    @tel %q2=%vC;
+    @parent %q2=%vC;
+    @desc %q2=%q1;
+    @set %q2=inherit !safe !halted !no_command;
+    &ACCESS %q2=1;
+    @lock/speech %q2=ACCESS/1;
+    @pemit %#=You have created a category named [name(%q2)]. Be sure to change %q0/ACCESS to establish who can access the category. Presently, it is set to 1, which means that anyone who can access +issues can access the category.;
+-
+
+@switch [first(version())]=
+    PennMUSH,{
+        @edit [v(ISS`GLOBAL)]/COMMAND`CATEGORY/CREATE=inherit !safe !halted,wizard !safe !halt
+    },
+    TinyMUSH,{
+        @edit [v(ISS`GLOBAL)]/COMMAND`CATEGORY/CREATE=!no_command,commands
+    }
+-
+
+&COMMAND`CATEGORY/DELETE [v(ISS`GLOBAL)]=
+$+category/delete *=*:
+    @assert u(FUNCTION`IS_SYSOP, %#) = {@pemit %#=Permission denied.};
+    think setq(0, trim(secure(%0)));
+    @break isdbref(setr(1, u(FUNCTION`FIND_CATEGORY, %q0))) = {@pemit %#=You must specify a valid category to delete.};
+    think setq(1, trim(secure(%0)));
+    @break isdbref(setr(1, u(FUNCTION`FIND_CATEGORY, %q1))) = {@pemit %#=You must specify a valid category to transfer active jobs to.}
+    think setq(2, name(%q0));
+    @set %q0=DESTROY_OK;
+    @nuke %q0;
+    think sql(u(QUERY`UPDATE_JOBS, `bucket`="%q1", WHERE `bucket` = "%q0"));
+    @pemit %#=You have deleted the category named %q2 and transferred all jobs to [name(%q1)].;
+-
+
+&COMMAND`CATEGORIES [v(ISS`GLOBAL)]=
+$+categories:
+    @assert u(FUNCTION`IS_USER)={@pemit %#=Permission denied.};
+    @pemit %#=u(FUNCTION`HEADER, Categories);
+    think setq(0, sortby(%!/SORT`BY_NAME, lcon(%vC)));
+    @pemit %#=iter(%q0, u(VIEW`CATEGORY_LIST, ##), %b, %r);
+    @pemit %#=u(FUNCTION`FOOTER);
+-
+
+#
+# Functions
+#
+
+think [ansi(hc, ISSUES:)] Setting up functions.
+-
+
+&FUNCTION`FIND_CATEGORY [v(ISS`GLOBAL)]=
+    localize(ifelse(
+        or(
+            strmatch(name(setr(0,locate(%vC,%0,iT))),%0),
+            strmatch(%q0,%0)
+        ),
+        %q0,
+        #-1
+    ))
+-
+
+&FUNCTION`FOOTER [v(ISS`GLOBAL)]=
+    repeat(=, 78)
+-
+
+&FUNCTION`HEADER [v(ISS`GLOBAL)]=
+    center(%b[ansi(h,%0)]%b, 78, =)
+-
+
+&FUNCTION`IS_USER [v(ISS`GLOBAL)]=
+    not(switch(
+        first(version()),
+        RhostMUSH, eq(bittype(%0), 0),
+        haspower(%0, GUEST)
+    ))
+-
+
+&FUNCTION`IS_SYSOP [v(ISS`GLOBAL)]=
+    switch(
+        first(version()),
+        RhostMUSH, gte(bittype(%0), 5),
+        hasflag(%0, WIZARD)
+    )
+-
+
+#
+# Queries
+#
+think [ansi(hc, ISSUES:)] Setting up queries.
+-
+
+&QUERY`COUNT_ISSUES [v(ISS`GLOBAL)]=
+    SELECT COUNT(id) AS `count` 
+    FROM `[v(DATA`TABLE_PREFIX)]issue`
+    %1
+-
+
+&QUERY`UPDATE_JOBS [v(ISS`GLOBAL)]=
+    UPDATE  `[v(DATA`TABLE_PREFIX)]issue` 
+    SET %0 
+    %1
+-
+
+#
+# Views
+#
+think [ansi(hc, ISSUES:)] Setting up views.
+
+&VIEW`CATEGORY_LIST_HEADER [v(ISS`GLOBAL)]=
+    [ansi(h,
+        Category 
+        [left(Description, 45)] 
+        Access
+        Issues
+        Overdue
+    )]%r
+    [repeat(-, 78)]
+-
+
+&VIEW`CATEGORY_LIST [v(ISS`GLOBAL)]=
+    [ljust(name(%0), 8)]
+    [ljust(left(get(%0/DESC), 45), 45)]
+    [ifelse(elock(%0/SPEECH, %#), Yes, No)]
+    [center(sql(u(QUERY`COUNT_ISSUES_IN_CATEGORY, WHERE `category` = %0)), 6)]
+    [center(sql(u(QUERY`COUNT_ISSUES_IN_CATEGORY, WHERE `category` = %0 AND `due_at` <= NOW\(\))), 7)]
+-
+
+#
+# Finalizing
+#
+
+think [ansi(hc, ISSUES:)] Finalizing installation.
+-
+
+&VERSION [v(ISS`GLOBAL)]=0.1.0
+-
