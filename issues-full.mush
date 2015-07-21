@@ -448,7 +448,7 @@ think [ansi(h, ISSUES:)] Setting up views.
     [setq(0, sql(u(QUERY`SELECT_NOTE, WHERE `id`=%0), |))]
     [repeat(-, 78)]%r
     [ifelse(
-        not(elements(%q0, 6, |),
+        not(elements(%q0, 6, |)),
         
         [ljust([ansi(h, Author:)] [name(elements(%q0, 3, |))], 39)]
         [rjust([ansi(h, Date:)] [u(FUNCTION`GET_DATE, elements(%q0, 5, |))], 39)]%r
