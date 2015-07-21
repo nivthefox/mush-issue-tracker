@@ -153,7 +153,7 @@ $+category/delete *=*:
     @assert isdbref(setr(1, u(FUNCTION`FIND_CATEGORY, %q0))) = {@pemit %#=You must specify a valid category to delete.};
     think setq(2, trim(secure(%1)));
     @assert isdbref(setr(3, u(FUNCTION`FIND_CATEGORY, %q2))) = {@pemit %#=You must specify a valid category to transfer active issues to.};
-    think setq(4, name(%q0));
+    think setq(4, name(%q1));
     @set %q1=DESTROY_OK;
     @nuke %q1;
     think sql(u(QUERY`UPDATE_ISSUES, `bucket`="%q3", WHERE `bucket` = "%q1"));
