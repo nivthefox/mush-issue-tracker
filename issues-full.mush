@@ -345,7 +345,8 @@ think [ansi(h, ISSUES:)] Setting up views.
         [ljust(Owner, 16)]
         [ljust(Status, 11)]
         [ljust(Due, 10)]
-    )]
+    )]%r
+    [repeat(-, 78)]
 -
 
 &VIEW`ISSUE_LIST [v(ISS`GLOBAL)]=
