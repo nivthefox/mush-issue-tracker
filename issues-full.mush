@@ -212,6 +212,10 @@ think [ansi(hc, ISSUES:)] Setting up functions.
     )
 -
 
+&SORT`BY_NAME [v(ISS`GLOBAL)]=
+    comp(name(%0),name(%1))
+-
+
 #
 # Queries
 #
