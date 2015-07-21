@@ -80,7 +80,7 @@ think [ansi(hc, ISSUES:)] Configuring MySQL Tables.
                 `author` CHAR(10) NOT NULL,
                 `note` TINYTEXT NOT NULL,
                 `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                `deleted_at` TIMESTAMP DEFAULT NULL,
+                `deleted_at` TIMESTAMP,
 
                 PRIMARY KEY (`id`),
                 INDEX (`issue_id`),
