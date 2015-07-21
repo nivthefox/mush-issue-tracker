@@ -274,6 +274,10 @@ think [ansi(h, ISSUES:)] Setting up functions.
     hasflag(%0, STAFF)
 -
 
+&FUNCTION`IS_ISSUE [v(ISS`GLOBAL)]=
+    t(strlen(sql(u(QUERY`SELECT_ISSUE, WHERE `id` = %0))))
+-
+
 &FUNCTION`IS_MEMBER [v(ISS`GLOBAL)]=
     t(member(
         sql(u(QUERY`SELECT_MEMBERS, WHERE `issue_id` = %0)), 
@@ -380,7 +384,6 @@ think [ansi(h, ISSUES:)] Setting up queries.
     SET %0 
     %1
 -
-
 
 #
 # Views
