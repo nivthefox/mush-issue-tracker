@@ -191,7 +191,7 @@ $+issue *:
     @assert cor(u(FUNCTION`IS_ADMIN, %#), u(FUNCTION`IS_MEMBER, %#, %q0))={@pemit %#=You do not have access to that issue.};
     @pemit %#=u(FUNCTION`HEADER, Issue %q0);
     @pemit %#=ulocal(VIEW`ISSUE_SUMMARY, %q0);
-    think setq(1, u(FUNCTION`GET_NOTES_FOR_ISSUE, %q0));
+    think setq(1, u(FUNCTION`GET_NOTES, %q0));
     @pemit %#=list(%q1, ulocal(VIEW`ISSUE_NOTE, ##));
     @pemit %#=u(FUNCTION`FOOTER);
 -
@@ -238,7 +238,7 @@ think [ansi(h, ISSUES:)] Setting up functions.
 
 &FUNCTION`GET_MEMBERS [v(ISS`GLOBAL)]=
     iter(
-        sql(u(QUERY`SELECT_MEMBER, WHERE `issue_id`=%0), |, `),
+        sql(u(QUERY`SELECT_MEMBER, WHERE `issue_id`=%0), `, |),
         elements(##, 3, |),
         `,
         %b
@@ -247,7 +247,7 @@ think [ansi(h, ISSUES:)] Setting up functions.
 
 &FUNCTION`GET_NOTES [v(ISS`GLOBAL)]=
     iter(
-        sql(u(QUERY`SELECT_NOTE, WHERE `issue_id`=%0), |, `)
+        sql(u(QUERY`SELECT_NOTE, WHERE `issue_id`=%0), `, |),
         elements(##, 1, |),
         `,
         %b
@@ -445,11 +445,11 @@ think [ansi(h, ISSUES:)] Setting up views.
 -
 
 &VIEW`ISSUE_NOTE [v(ISS`GLOBAL)]=
+    [setq(0, sql(u(QUERY`SELECT_NOTE, WHERE `id`=%0), |))]
     [repeat(-, 78)]%r
     [ifelse(
         elements(%q0, 6, |),
         
-        [setq(0, sql(u(QUERY`SELECT_NOTE, WHERE `id`=%0), |))]
         [ljust([ansi(h, Author:)] [name(elements(%q0, 3, |))], 39)]
         [rjust([ansi(h, Date:)] [u(FUNCTION`GET_DATE, elements(%q0, 5, |))], 39)]%r
         [edit(elements(%q0, 4, |), &quot;, ")],
