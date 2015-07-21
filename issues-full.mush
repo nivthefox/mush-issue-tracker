@@ -36,6 +36,7 @@ think [ansi(hc, ISSUES:)] Checking current installation.
         &ISS`CATEGORY_PARENT %#=[create(\[LIT\] Loki's Issue Category Parent,10)];
         @tel [v(ISS`CATEGORY_PARENT)]=[v(ISS`GLOBAL)];
         @VC [v(ISS`GLOBAL)]=[v(ISS`CATEGORY_PARENT)];
+        &ACCESS [v(ISS`CATEGORY_PARENT)]=1;
     }
 -
 
