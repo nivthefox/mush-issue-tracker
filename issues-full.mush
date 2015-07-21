@@ -105,15 +105,15 @@ think [ansi(h, ISSUES:)] Configuring MySQL Tables.
 
         think sql(lit(
             CREATE TABLE `%q0issue_read`
-            {
+            (
                 `issue_id` INT(11) UNSIGNED,
                 `note_id` INT(11) UNSIGNED,
                 `reader` CHAR(10) NOT NULL,
 
-                PRIMARY KEY (`issue_id`,`member`),
+                PRIMARY KEY (`issue_id`,`reader`),
                 INDEX (`issue_id`),
-                INDEX (`member`)
-            }
+                INDEX (`reader`)
+            )
         ));
     };
 }
