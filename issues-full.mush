@@ -257,13 +257,13 @@ think [ansi(h, ISSUES:)] Setting up functions.
 &FUNCTION`GET_VISIBLE_ISSUES [v(ISS`GLOBAL)]=
     ifelse(
         u(FUNCTION`IS_ADMIN, %#),
-        sql(u(QUERY`SELECT_ISSUES_BY_CATEGORY, filter(FUNCTION`HAS_ACCESS, lcon(%qC), %b, %b, %#,))),
+        sql(u(QUERY`SELECT_ISSUES_BY_CATEGORY, filter(FUNCTION`HAS_ACCESS, lcon(%vC), %b, %b, %#,))),
         sql(u(QUERY`SELECT_ISSUES_BY_MEMBER, %#))
     )
 -
 
 &FUNCTION`HAS_ACCESS [v(ISS`GLOBAL)]=
-    elock(%0/ACCESS, %1)
+    elock(%0/SPEECH, %1)
 -
 
 &FUNCTION`HEADER [v(ISS`GLOBAL)]=
@@ -374,7 +374,7 @@ think [ansi(h, ISSUES:)] Setting up queries.
 -
 
 &QUERY`SELECT_NOTE [v(ISS`GLOBAL)]=
-    SELECT `id`,`issue_id`,`note`,`author`,UNIX_TIMESTAMP(`created_at`),UNIX_TIMESTAMP(`deleted_at`)
+    SELECT `id`,`issue_id`,`author`,`note`,UNIX_TIMESTAMP(`created_at`),UNIX_TIMESTAMP(`deleted_at`)
     FROM `[v(DATA`TABLE_PREFIX)]issue_note`
     %1
 -
@@ -434,12 +434,12 @@ think [ansi(h, ISSUES:)] Setting up views.
 
     [ansi(h, Title:)] [elements(%q0, 2, |)]%r
 
-    [ljust([ansi(h, Category:)] [name(elements(%q0, 3, |))], 39)]
-    [rjust([ansi(h, Owner:)] [u(FUNCTION`OWNER_NAME, elements(%q0, 4, |))], 39)]%r
-
+    [ljust([ansi(h, Category:)] [name(elements(%q0, 3, |))], 26)]
     [ljust([ansi(h, Status:)] [elements(%q0, 5, |)], 26)]
-    [center([ansi(h, Created:)] [u(FUNCTION`GET_DATE, elements(%q0, 6, |))], 26)]
-    [rjust([ansi(h, Due:)] [u(FUNCTION`GET_DATE, elements(%q0, 7, |))], 26)]%r
+    [rjust([ansi(h, Owner:)] [u(FUNCTION`OWNER_NAME, elements(%q0, 4, |))], 26)]%r
+
+    [ljust([ansi(h, Created:)] [u(FUNCTION`GET_DATE, elements(%q0, 6, |))], 39)]
+    [rjust([ansi(h, Due:)] [u(FUNCTION`GET_DATE, elements(%q0, 7, |))], 39)]%r
 
     [ansi(h, Members:)] [itemize(iter(%q1, name(##)))]
 -
@@ -448,7 +448,7 @@ think [ansi(h, ISSUES:)] Setting up views.
     [setq(0, sql(u(QUERY`SELECT_NOTE, WHERE `id`=%0), |))]
     [repeat(-, 78)]%r
     [ifelse(
-        elements(%q0, 6, |),
+        not(elements(%q0, 6, |),
         
         [ljust([ansi(h, Author:)] [name(elements(%q0, 3, |))], 39)]
         [rjust([ansi(h, Date:)] [u(FUNCTION`GET_DATE, elements(%q0, 5, |))], 39)]%r
