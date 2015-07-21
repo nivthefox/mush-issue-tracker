@@ -183,6 +183,16 @@ $+issue *=*:
     @pemit %#=u(FUNCTION`PREFIX) You have submitted a new issue #%q2: %q0.
 -
 
+&COMMAND`ISSUES [v(ISS`GLOBAL)]=
+$+issues:
+    @assert u(FUNCTION`IS_USER)={@pemit %#=Permission denied.};
+    think setq(0, u(FUNCTION`GET_VISIBLE_ISSUES));
+    @pemit %#=u(FUNCTION`HEADER, Issues);
+    @pemit %#=u(VIEW`ISSUE_LIST_HEADER);
+    @pemit %#=iter(%q0, u(VIEW`ISSUE_LIST, ##), %b, %r);
+    @pemit %#=u(FUNCTION`FOOTER);
+-
+
 #
 # Functions
 #
@@ -205,6 +215,14 @@ think [ansi(h, ISSUES:)] Setting up functions.
     repeat(=, 78)
 -
 
+FUNCTION`GET_VISIBLE_ISSUES [v(ISS`GLOBAL)]=
+    ifelse(
+        u(FUNCTION`IS_ADMIN, %#),
+        sql(u(QUERY`SELECT_ISSUES_BY_CATEGORY, filter(FUNCTION`HAS_ACCESS, lcon(%qC), %b, %b, %#,))),
+        sql(u(QUERY`SELECT_ISSUES_BY_MEMBER, %#))
+    )
+-
+
 &FUNCTION`HEADER [v(ISS`GLOBAL)]=
     center(%b[ansi(h,%0)]%b, 78, =)
 -
@@ -217,6 +235,10 @@ think [ansi(h, ISSUES:)] Setting up functions.
     ))
 -
 
+&FUNCTION`IS_ADMIN [v(ISS`GLOBAL)]=
+    hasflag(%0, STAFF)
+-
+
 &FUNCTION`IS_SYSOP [v(ISS`GLOBAL)]=
     switch(
         first(version()),
@@ -227,6 +249,10 @@ think [ansi(h, ISSUES:)] Setting up functions.
 
 &FUNCTION`PREFIX [v(ISS`GLOBAL)]=
     ansi(h, Issues:)
+-
+
+&FUNCTION`HAS_ACCESS [v(ISS`GLOBAL)]=
+    elock(%0/ACCESS, %1)
 -
 
 &SORT`BY_NAME [v(ISS`GLOBAL)]=
@@ -262,6 +288,19 @@ think [ansi(h, ISSUES:)] Setting up queries.
 
 &QUERY`LAST_INSERT_ID [v(ISS`GLOBAL)]=
     SELECT last_insert_id()
+-
+
+&QUERY`SELECT_ISSUES_BY_CATEGORY = [v(ISS`GLOBAL)]=
+    SELECT `id`
+    FROM `[v(DATA`TABLE_PREFIX)]issue`
+    WHERE `category`="%0"
+-
+
+&QUERY`SELECT_ISSUES_BY_MEMBER = [v(ISS`GLOBAL)]=
+    SELECT `[v(DATA`TABLE_PREFIX)]issue`.`id`
+    FROM `[v(DATA`TABLE_PREFIX)]issue`
+    JOIN `[v(DATA`TABLE_PREFIX)]issue_member`
+    WHERE `[v(DATA`TABLE_PREFIX)]issue_member`.`member`="%0"
 -
 
 &QUERY`UPDATE_ISSUES [v(ISS`GLOBAL)]=
