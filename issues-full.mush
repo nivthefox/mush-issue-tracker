@@ -215,7 +215,7 @@ think [ansi(h, ISSUES:)] Setting up functions.
     repeat(=, 78)
 -
 
-FUNCTION`GET_VISIBLE_ISSUES [v(ISS`GLOBAL)]=
+&FUNCTION`GET_VISIBLE_ISSUES [v(ISS`GLOBAL)]=
     ifelse(
         u(FUNCTION`IS_ADMIN, %#),
         sql(u(QUERY`SELECT_ISSUES_BY_CATEGORY, filter(FUNCTION`HAS_ACCESS, lcon(%qC), %b, %b, %#,))),
