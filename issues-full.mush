@@ -133,9 +133,8 @@ $+category/create *=*:
     @parent %q2=%vC;
     @desc %q2=%q1;
     @set %q2=inherit !safe !halted !no_command;
-    &ACCESS %q2=1;
     @lock/speech %q2=ACCESS/1;
-    @pemit %#=You have created a category named [name(%q2)]. Be sure to change %q0/ACCESS to establish who can access the category. Presently, it is set to 1, which means that anyone who can access +issues can access the category.;
+    @pemit %#=You have created a category named [name(%q2)]. Be sure to change %q0/ACCESS to establish who can access the category. Presently, it is set to the default, which means that anyone who can access +issues can access the category.;
 -
 
 @switch [first(version())]=
@@ -153,12 +152,12 @@ $+category/delete *=*:
     think setq(0, trim(secure(%0)));
     @assert isdbref(setr(1, u(FUNCTION`FIND_CATEGORY, %q0))) = {@pemit %#=You must specify a valid category to delete.};
     think setq(1, trim(secure(%1)));
-    @assert isdbref(setr(1, u(FUNCTION`FIND_CATEGORY, %q1))) = {@pemit %#=You must specify a valid category to transfer active jobs to.}
+    @assert isdbref(setr(1, u(FUNCTION`FIND_CATEGORY, %q1))) = {@pemit %#=You must specify a valid category to transfer active issues to.}
     think setq(2, name(%q0));
     @set %q0=DESTROY_OK;
     @nuke %q0;
-    think sql(u(QUERY`UPDATE_JOBS, `bucket`="%q1", WHERE `bucket` = "%q0"));
-    @pemit %#=You have deleted the category named %q2 and transferred all jobs to [name(%q1)].;
+    think sql(u(QUERY`UPDATE_ISSUES, `bucket`="%q1", WHERE `bucket` = "%q0"));
+    @pemit %#=You have deleted the category named %q2 and transferred all issues to [name(%q1)].;
 -
 
 &COMMAND`CATEGORIES [v(ISS`GLOBAL)]=
@@ -229,7 +228,7 @@ think [ansi(hc, ISSUES:)] Setting up queries.
     %1
 -
 
-&QUERY`UPDATE_JOBS [v(ISS`GLOBAL)]=
+&QUERY`UPDATE_ISSUES [v(ISS`GLOBAL)]=
     UPDATE  `[v(DATA`TABLE_PREFIX)]issue` 
     SET %0 
     %1
@@ -264,4 +263,10 @@ think [ansi(hc, ISSUES:)] Finalizing installation.
 -
 
 &VERSION [v(ISS`GLOBAL)]=0.1.0
+-
+
+@set me=!quiet
+-
+
+think [ansi(hc, ISSUES:)] Done.
 -
