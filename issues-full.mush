@@ -243,11 +243,7 @@ think [ansi(hc, ISSUES:)] Setting up views.
 
 &VIEW`CATEGORY_LIST_HEADER [v(ISS`GLOBAL)]=
     [ansi(h,
-        Category 
-        [left(Description, 45)] 
-        Access
-        Issues
-        Overdue
+        Category [ljust(Description, 45)] Access Issues Overdue
     )]%r
     [repeat(-, 78)]
 -
@@ -256,8 +252,8 @@ think [ansi(hc, ISSUES:)] Setting up views.
     [ljust(name(%0), 8)]
     [ljust(left(get(%0/DESC), 45), 45)]
     [ifelse(elock(%0/SPEECH, %#), Yes, No)]
-    [center(sql(u(QUERY`COUNT_ISSUES_IN_CATEGORY, WHERE `category` = %0)), 6)]
-    [center(sql(u(QUERY`COUNT_ISSUES_IN_CATEGORY, WHERE `category` = %0 AND `due_at` <= NOW\(\))), 7)]
+    [center(sql(u(QUERY`COUNT_ISSUES_IN_CATEGORY, WHERE `category` = "%0")), 6)]
+    [center(sql(u(QUERY`COUNT_ISSUES_IN_CATEGORY, WHERE `category` = "%0" AND `due_at` <= NOW\(\))), 7)]
 -
 
 #
