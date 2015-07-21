@@ -110,7 +110,7 @@ think [ansi(h, ISSUES:)] Configuring MySQL Tables.
                 `note_id` INT(11) UNSIGNED,
                 `reader` CHAR(10) NOT NULL,
 
-                PRIMARY KEY (`issue_id`,`note_id`,`member`),
+                PRIMARY KEY (`issue_id`,`member`),
                 INDEX (`issue_id`),
                 INDEX (`member`)
             }
@@ -441,6 +441,24 @@ think [ansi(h, ISSUES:)] Setting up queries.
     %1
 -
 
+# (update_member_read, <issue_id>, <note_id>, <dbref>)
+&QUERY`UPDATE_MEMBER_READ [v(ISS`GLOBAL)]=
+    REPLACE INTO `[v(DATA`TABLE_PREFIX)]issue_read`
+    SET `issue_id`=%0, `note_id`=%1, `reader`=%2
+-
+
+#
+# Triggers
+#
+think [ansi(h, ISSUES:)] Setting up triggers.
+-
+
+# ISSUE_VIEWED=<issue_id>, <dbref>
+&TRIGGER`ISSUE_VIEWED [v(ISS`GLOBAL)]=
+    think sql(u(QUERY`UPDATE_MEMBER_READ, %0, last(u(FUNCTION`GET_NOTES, %0)), %1));
+-
+
+    
 #
 # Views
 #
