@@ -186,15 +186,19 @@ $+categories:
 # +issue/create <title>=<body>
 &COMMAND`ISSUE_CREATE [v(ISS`GLOBAL)]=
 $+issue/create *=*:
-    @assert u(FUNCTION`IS_USER, %#)={@pemit %#=Permission denied.};
-    think setq(0, secure(trim(%0)));
-    think setq(1, edit(objeval(%#, trim(%1)), ", &quot;));
-    think sql(u(QUERY`CREATE_ISSUE, `title`="%0"\, `category`="[v(DATA`DEFAULT_CATEGORY)]"\, `status`="[v(DATA`DEFAULT_STATUS)]"));
-    think setq(2, sql(u(QUERY`LAST_INSERT_ID)));
-    think sql(u(QUERY`CREATE_ISSUE_NOTE, `issue_id`=%q2\, `author`="%#"\, `note`="%q1"\, `type`="CREATE"));
-    think sql(u(QUERY`CREATE_ISSUE_MEMBER, `issue_id`=%q2\, `member`="%#"));
-    @pemit %#=u(FUNCTION`PREFIX) You have submitted a new issue #%q2: %q0.;
-    @trigger %!/TRIGGER`ISSUE_CREATED=%#, %q2;
+    @trigger %!/TRIGGER`CREATE_ISSUE=%#, %0, %2, [v(DATA`DEFAULT_CATEGORY)];
+-
+
+# +request <title>=<body>
+&COMMAND`REQUEST [v(ISS`GLOBAL)]=
+$+request *=*:
+    @trigger %!/TRIGGER`CREATE_ISSUE=%#, %0, %2, REQ;
+-
+
+# +bug <title>=<body>
+&COMMAND`BUG [v(ISS`GLOBAL)]=
+$+bug *=*:
+    @trigger %!/TRIGGER`CREATE_ISSUE=%#, %0, %2, BUG;
 -
 
 # +issue <id>
@@ -452,11 +456,25 @@ think [ansi(h, ISSUES:)] Setting up queries.
 think [ansi(h, ISSUES:)] Setting up triggers.
 -
 
-# ISSUE_VIEWED=<issue_id>, <dbref>
+# ISSUE_CREATE=<dbref>, <title>, <body>, <category>
+&TRIGGER`ISSUE_CREATE [v(ISS`GLOBAL)]=
+    @assert u(FUNCTION`IS_USER, %#)={@pemit %#=Permission denied.};
+    think setq(0, secure(trim(%1)));
+    think setq(1, edit(objeval(%#, trim(%2)), ", &quot;));
+    think sql(u(QUERY`CREATE_ISSUE, `title`="%q0"\, `category`="%3"\, `status`="[v(DATA`DEFAULT_STATUS)]"));
+    think setq(2, sql(u(QUERY`LAST_INSERT_ID)));
+    think sql(u(QUERY`CREATE_ISSUE_NOTE, `issue_id`=%q2\, `author`="%0"\, `note`="%q1"\, `type`="CREATE"));
+    think sql(u(QUERY`CREATE_ISSUE_MEMBER, `issue_id`=%q2\, `member`="%#"));
+    @pemit %0=u(FUNCTION`PREFIX) You have submitted a new issue #%q2: %q0.;
+    @trigger %!/TRIGGER`ISSUE_CREATED=%0, %q2;
+-
+
+# ISSUE_VIEWED=<dbref>, <issue_id>
 &TRIGGER`ISSUE_VIEWED [v(ISS`GLOBAL)]=
     think sql(u(QUERY`UPDATE_MEMBER_READ, %1, last(u(FUNCTION`GET_NOTES, %1)), %0));
 -
 
+# NOTE_ADDED=<dbref>, <issue_id>
 &TRIGGER`NOTE_ADDED [v(ISS`GLOBAL)]=
     think sql(u(QUERY`UPDATE_MEMBER_READ, %1, last(u(FUNCTION`GET_NOTES, %1)), %0));
 -
@@ -547,6 +565,28 @@ think [ansi(h, ISSUES:)] Setting up views.
 #
 
 think [ansi(h, ISSUES:)] Finalizing installation.
+-
+
+@switch hasattr(v(ISS`GLOBAL), DATA`DEFAULT_CATEGORY)=
+    0,{
+        think setq(1, get(v(ISS`GLOBAL)/VC));
+        think setq(0, create(REQ, 10));
+        @desc %q1=General requests.;
+        @parent %q1=%q0;
+        @tel %q1=%q0;
+        &DATA`DEFAULT_CATEGORY [v(ISS`GLOBAL)]=%q1;
+
+        think setq(1, create(BUG, 10));
+        @desc %q1=Bug reports.;
+        @parent %q1=%q0;
+        @tel %q1=%q0;
+    }
+-
+
+@switch hasattr(v(ISS`GLOBAL), DATA`DEFAULT_STATUS)=
+    0,{
+        &DATA`DEFAULT_STATUS [v(ISS`GLOBAL)]=NEW
+    }
 -
 
 &VERSION [v(ISS`GLOBAL)]=0.1.0
