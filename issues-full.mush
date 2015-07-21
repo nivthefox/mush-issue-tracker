@@ -569,8 +569,9 @@ think [ansi(h, ISSUES:)] Finalizing installation.
 
 @switch hasattr(v(ISS`GLOBAL), DATA`DEFAULT_CATEGORY)=
     0,{
-        think setq(1, get(v(ISS`GLOBAL)/VC));
-        think setq(0, create(REQ, 10));
+        think setq(0, get(v(ISS`GLOBAL)/VC));
+        
+        think setq(1, create(REQ, 10));
         @desc %q1=General requests.;
         @parent %q1=%q0;
         @tel %q1=%q0;
