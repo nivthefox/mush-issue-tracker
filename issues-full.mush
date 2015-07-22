@@ -465,7 +465,7 @@ think [ansi(h, ISSUES:)] Setting up triggers.
     think setq(2, sql(u(QUERY`LAST_INSERT_ID)));
     think sql(u(QUERY`CREATE_ISSUE_NOTE, `issue_id`=%q2\, `author`="%0"\, `note`="%q1"\, `type`="CREATE"));
     think sql(u(QUERY`CREATE_ISSUE_MEMBER, `issue_id`=%q2\, `member`="%#"));
-    @pemit %0=u(FUNCTION`PREFIX) You have submitted a new issue #%q2: %q0.;
+    @pemit %0=u(FUNCTION`PREFIX) You have submitted a new [name(%3)] issue #%q2: %q0.;
     @trigger %!/TRIGGER`ISSUE_CREATED=%0, %q2;
 -
 
