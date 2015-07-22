@@ -186,19 +186,19 @@ $+categories:
 # +issue/create <title>=<body>
 &COMMAND`ISSUE_CREATE [v(ISS`GLOBAL)]=
 $+issue/create *=*:
-    @trigger %!/TRIGGER`CREATE_ISSUE=%#, %0, %2, [v(DATA`DEFAULT_CATEGORY)];
+    @trigger %!/TRIGGER`CREATE_ISSUE=%#, %0, %1, [v(DATA`DEFAULT_CATEGORY)];
 -
 
 # +request <title>=<body>
 &COMMAND`REQUEST [v(ISS`GLOBAL)]=
 $+request *=*:
-    @trigger %!/TRIGGER`CREATE_ISSUE=%#, %0, %2, REQ;
+    @trigger %!/TRIGGER`CREATE_ISSUE=%#, %0, %1, [u(FUNCTION`FIND_CATEGORY, REQ)];
 -
 
 # +bug <title>=<body>
 &COMMAND`BUG [v(ISS`GLOBAL)]=
 $+bug *=*:
-    @trigger %!/TRIGGER`CREATE_ISSUE=%#, %0, %2, BUG;
+    @trigger %!/TRIGGER`CREATE_ISSUE=%#, %0, %1, [u(FUNCTION`FIND_CATEGORY, BUG)];
 -
 
 # +issue <id>
@@ -410,7 +410,7 @@ think [ansi(h, ISSUES:)] Setting up queries.
 &QUERY`SELECT_ISSUES_BY_CATEGORY [v(ISS`GLOBAL)]=
     SELECT `id`
     FROM `[v(DATA`TABLE_PREFIX)]issue`
-    WHERE `category`="%0"
+    WHERE `category` IN ([iter(%0, "##", , \,)])
 -
 
 &QUERY`SELECT_ISSUES_BY_MEMBER [v(ISS`GLOBAL)]=
@@ -456,8 +456,8 @@ think [ansi(h, ISSUES:)] Setting up queries.
 think [ansi(h, ISSUES:)] Setting up triggers.
 -
 
-# ISSUE_CREATE=<dbref>, <title>, <body>, <category>
-&TRIGGER`ISSUE_CREATE [v(ISS`GLOBAL)]=
+# CREATE_ISSUE=<dbref>, <title>, <body>, <category>
+&TRIGGER`CREATE_ISSUE [v(ISS`GLOBAL)]=
     @assert u(FUNCTION`IS_USER, %#)={@pemit %#=Permission denied.};
     think setq(0, secure(trim(%1)));
     think setq(1, edit(objeval(%#, trim(%2)), ", &quot;));
@@ -570,7 +570,7 @@ think [ansi(h, ISSUES:)] Finalizing installation.
 @switch hasattr(v(ISS`GLOBAL), DATA`DEFAULT_CATEGORY)=
     0,{
         think setq(0, get(v(ISS`GLOBAL)/VC));
-        
+
         think setq(1, create(REQ, 10));
         @desc %q1=General requests.;
         @parent %q1=%q0;
