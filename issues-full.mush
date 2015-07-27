@@ -219,14 +219,7 @@ $+issue *:
 # +issue/add <id>=<note>
 &COMMAND`ISSUE/ADD [v(ISS`GLOBAL)]=
 $+issue/add *=*:
-    @assert u(FUNCTION`IS_USER, %#)={@pemit %#=Permission denied.};
-    think setq(0, secure(trim(%0)));
-    @assert u(FUNCTION`IS_ISSUE, %q0)={@pemit %#=Invalid issue.};
-    @assert cor(u(FUNCTION`IS_ADMIN, %#), u(FUNCTION`IS_MEMBER, %#, %q0))={@pemit %#=You do not have access to that issue.};
-    think setq(1, edit(objeval(%#, trim(%1)), ", &quot;));
-    think sql(u(QUERY`CREATE_ISSUE_NOTE, `issue_id`=%q0\, `author`="%#"\, `note`="%q1"\, `type`="ADD"));
-    @pemit %#=u(FUNCTION`PREFIX) You have added a note to issue #%q0.;
-    @trigger %!/TRIGGER`NOTE_ADDED=%#, %q0, ADD;
+    @trigger %!/TRIGGER`ADD_NOTE=%#, %0, %1, ADD;
 -
 
 # +issues
@@ -400,7 +393,7 @@ think [ansi(h, ISSUES:)] Setting up queries.
 
 &QUERY`CREATE_ISSUE_NOTE [v(ISS`GLOBAL)]=
     INSERT INTO `[v(DATA`TABLE_PREFIX)]issue_note`
-    SET %0
+    SET `issue_id`=%0, `author`="%1", `note`="[edit(%2, ", &quot;)]", `type`="%3"
 -
 
 &QUERY`LAST_INSERT_ID [v(ISS`GLOBAL)]=
@@ -456,15 +449,27 @@ think [ansi(h, ISSUES:)] Setting up queries.
 think [ansi(h, ISSUES:)] Setting up triggers.
 -
 
+# ADD_NOTE=<dbref>, <issue_id>, <body>, <type>
+&TRIGGER`ADD_NOTE [v(ISS`GLOBAL)]=
+    @assert u(FUNCTION`IS_USER, %0)={@pemit %0=Permission denied.};
+    think setq(0, secure(trim(%1)));
+    @assert u(FUNCTION`IS_ISSUE, %q0)={@pemit %0=Invalid issue.};
+    @assert cor(u(FUNCTION`IS_ADMIN, %0), u(FUNCTION`IS_MEMBER, %0, %q0))={@pemit %0=You do not have access to that issue.};
+    think setq(1, objeval(%0, trim(%2)));
+    think sql(u(QUERY`CREATE_ISSUE_NOTE, %q0, %0, %q1, %3));
+    @pemit %0=u(FUNCTION`PREFIX) You have added a note to issue #%q0.;
+    @trigger %!/TRIGGER`NOTE_ADDED=%0, %q0, %3;
+-
+
 # CREATE_ISSUE=<dbref>, <title>, <body>, <category>
 &TRIGGER`CREATE_ISSUE [v(ISS`GLOBAL)]=
-    @assert u(FUNCTION`IS_USER, %#)={@pemit %#=Permission denied.};
+    @assert u(FUNCTION`IS_USER, %0)={@pemit %0=Permission denied.};
     think setq(0, secure(trim(%1)));
-    think setq(1, edit(objeval(%#, trim(%2)), ", &quot;));
+    think setq(1, objeval(%0, trim(%2)));
     think sql(u(QUERY`CREATE_ISSUE, `title`="%q0"\, `category`="%3"\, `status`="[v(DATA`DEFAULT_STATUS)]"));
     think setq(2, sql(u(QUERY`LAST_INSERT_ID)));
-    think sql(u(QUERY`CREATE_ISSUE_NOTE, `issue_id`=%q2\, `author`="%0"\, `note`="%q1"\, `type`="CREATE"));
-    think sql(u(QUERY`CREATE_ISSUE_MEMBER, `issue_id`=%q2\, `member`="%#"));
+    think sql(u(QUERY`CREATE_ISSUE_NOTE, %q2, %0, %q1, CREATE));
+    think sql(u(QUERY`CREATE_ISSUE_MEMBER, `issue_id`=%q2\, `member`="%0"));
     @pemit %0=u(FUNCTION`PREFIX) You have submitted a new [name(%3)] issue #%q2: %q0.;
     @trigger %!/TRIGGER`ISSUE_CREATED=%0, %q2;
 -
