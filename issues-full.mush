@@ -508,7 +508,7 @@ think [ansi(h, ISSUES:)] Setting up triggers.
     think setq(2, sql(u(QUERY`SELECT_ISSUE, WHERE `id`=%q0), |));
     think sql(u(QUERY`UPDATE_ISSUE, `owner`="%q1", WHERE `id`=%q0));
     think sql(u(QUERY`CREATE_ISSUE_NOTE, %q0, %0, Owner changed from [elements(%q2, 4, |)] to %q1, SET));
-    @pemit %0=u(FUNCTION`PREFIX) You change the owner of issue %q0 from [elements(%q2, 4, |)] to %q1.;
+    @pemit %0=u(FUNCTION`PREFIX) You change the owner of issue %q0 from [name(elements(%q2, 4, |))] to [name(%q1)].;
 -
 
 # CREATE_ISSUE=<dbref>, <title>, <body>, <category>
