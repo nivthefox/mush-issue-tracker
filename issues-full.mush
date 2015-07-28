@@ -505,11 +505,10 @@ think [ansi(h, ISSUES:)] Setting up triggers.
     @assert u(FUNCTION`IS_ISSUE, %q0)={@pemit %0=Invalid issue.};
     think setq(1, trim(%2));
     @assert u(FUNCTION`IS_ADMIN, %q1)={@pemit %0=Permission denied.};
-    @assert t(member(v(DATA`STATUSES), %q1, |))={@pemit %0=Invalid status.};
     think setq(2, sql(u(QUERY`SELECT_ISSUE, WHERE `id`=%q0), |));
     think sql(u(QUERY`UPDATE_ISSUE, `owner`="%q2", WHERE `id`=%q0));
-    think sql(u(QUERY`CREATE_ISSUE_NOTE, %q0, %0, Status changed from [elements(%q2, 5, |)] to %q1, SET));
-    @pemit %0=u(FUNCTION`PREFIX) You change the status of issue %q0 from [elements(%q2, 5, |)] to %q1.;
+    think sql(u(QUERY`CREATE_ISSUE_NOTE, %q0, %0, Owner changed from [elements(%q2, 4, |)] to %q1, SET));
+    @pemit %0=u(FUNCTION`PREFIX) You change the status of issue %q0 from [elements(%q2, 4, |)] to %q1.;
 -
 
 # CREATE_ISSUE=<dbref>, <title>, <body>, <category>
