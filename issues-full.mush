@@ -496,7 +496,7 @@ think [ansi(h, ISSUES:)] Setting up triggers.
     think setq(0, secure(trim(%1)));
     @assert u(FUNCTION`IS_ISSUE, %q0)={@pemit %0=Invalid issue.};
     think setq(1, secure(trim(%2)));
-    @assert t(member(v(DATA`STATUSES), %q1))={@pemit %0=Invalid status.};
+    @assert t(member(v(DATA`STATUSES), %q1, |))={@pemit %0=Invalid status.};
     think setq(2, sql(u(QUERY`SELECT_ISSUE, WHERE `id`=%q0)));
     think sql(u(QUERY`UPDATE_ISSUE, `status`="[ucstr(%q1)]", `id`=%q0));
     think sql(u(QUERY`CREATE_ISSUE_NOTE, %q0, %0, Status changed from [elements(%q2, 4, |)] to [ucstr(%2)], SET));
