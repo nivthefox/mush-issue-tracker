@@ -168,7 +168,7 @@ $+category/delete *=*:
     think setq(4, name(%q1));
     @set %q1=DESTROY_OK;
     @nuke %q1;
-    think sql(u(QUERY`UPDATE_ISSUES, `bucket`="%q3", WHERE `bucket` = "%q1"));
+    think sql(u(QUERY`UPDATE_ISSUE, `bucket`="%q3", WHERE `bucket` = "%q1"));
     @pemit %#=You have deleted the category named %q4 and transferred all issues to [name(%q3)].;
 -
 
@@ -220,6 +220,12 @@ $+issue *:
 &COMMAND`ISSUE/ADD [v(ISS`GLOBAL)]=
 $+issue/add *=*:
     @trigger %!/TRIGGER`ADD_NOTE=%#, %0, %1, ADD;
+-
+
+# +issue/status <id>=<status>
+&COMMAND`ISSUE/SET [v(ISS`GLOBAL)]=
+$+issue/set *=*:
+    @trigger %!/TRIGGER`SET_STATUS=%#, %0, %1;
 -
 
 # +issues
@@ -431,7 +437,7 @@ think [ansi(h, ISSUES:)] Setting up queries.
     %0
 -
 
-&QUERY`UPDATE_ISSUES [v(ISS`GLOBAL)]=
+&QUERY`UPDATE_ISSUE [v(ISS`GLOBAL)]=
     UPDATE  `[v(DATA`TABLE_PREFIX)]issue` 
     SET %0 
     %1
@@ -483,7 +489,20 @@ think [ansi(h, ISSUES:)] Setting up triggers.
 &TRIGGER`NOTE_ADDED [v(ISS`GLOBAL)]=
     think sql(u(QUERY`UPDATE_MEMBER_READ, %1, last(u(FUNCTION`GET_NOTES, %1)), %0));
 -
-    
+
+# SET_STATUS=<dbref>, <issue_id>, <status>
+&TRIGGER`SET_STATUS [v(ISS`GLOBAL)]=
+    @assert u(FUNCTION`IS_ADMIN, %0)={@pemit %0=Permission denied.};
+    think setq(0, secure(trim(%1)));
+    @assert u(FUNCTION`IS_ISSUE, %q0)={@pemit %0=Invalid issue.};
+    think setq(1, secure(trim(%2)));
+    @assert t(member(v(DATA`STATUSES), %q1))={@pemit %0=Invalid status.};
+    think setq(2, sql(u(QUERY`SELECT_ISSUE, WHERE `id`=%q0)));
+    think sql(u(QUERY`UPDATE_ISSUE, `status`="[ucstr(%q1)]", `id`=%q0));
+    think sql(u(QUERY`CREATE_ISSUE_NOTE, %q0, %0, Status changed from [elements(%q2, 4, |)] to [ucstr(%2)], SET));
+    @pemit %0=u(FUNCTION`PREFIX) You change the status of issue %q0 from [elements(%q2, 4, |)] to [ucstr(%2)].;
+-
+
 #
 # Views
 #
@@ -586,6 +605,12 @@ think [ansi(h, ISSUES:)] Finalizing installation.
         @desc %q1=Bug reports.;
         @parent %q1=%q0;
         @tel %q1=%q0;
+    }
+-
+
+@switch hasattr(v(ISS`GLOBAL), DATA`STATUSES)=
+    0,{
+        &DATA`STATUSES [v(ISS`GLOBAL)]=OPENED|UNDERWAY|PENDING|HOLD|CLOSED|REOPENED
     }
 -
 
