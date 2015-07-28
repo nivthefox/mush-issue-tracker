@@ -218,18 +218,21 @@ $+issue *:
 
 # +issue/add <id>=<note>
 &COMMAND`ISSUE/ADD [v(ISS`GLOBAL)]=
-$+issue/add *=*:
-    @trigger %!/TRIGGER`ADD_NOTE=%#, %0, %1, ADD;
+    $+issue/add *=*:
+        @trigger %!/TRIGGER`ADD_NOTE=%#, %0, %1, ADD;
 -
 
 # +issue/assign <id>=<staffer>
+&COMMAND`ISSUE/ASSIGN [v(ISS`GLOBAL)]=
+
 $+issue/assign *=*:
     @trigger %!/TRIGGER`ASSIGN=%#, %0, %1;
 -
 
 # +issue/claim <id>
-$+issue/claim *:
-    @trigger %!/TRIGGER`ASSIGN=%#, %0, %#;
+&COMMAND`ISSUE/CLAIM [v(ISS`GLOBAL)]=
+    $+issue/claim *:
+        @trigger %!/TRIGGER`ASSIGN=%#, %0, %#;
 -
 
 # +issue/full <id>
