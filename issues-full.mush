@@ -589,7 +589,7 @@ think [ansi(h, ISSUES:)] Setting up views.
             not(elements(%q0, 7, |)),
             
             [ljust([ansi(h, Author:)] [name(elements(%q0, 3, |))], 20)]
-            [ljust(elements(%q0, 5, |)[ifelse(ulocal(FUNCTION`IS_VISIBLE_NOTE, elements(%q0, 5, |), elements(%q0, 3, |), %1), ansi(hx, HIDDEN), @@())], 19)]
+            [ljust(elements(%q0, 5, |)[ifelse(not(ulocal(FUNCTION`IS_VISIBLE_NOTE, elements(%q0, 5, |)), elements(%q0, 3, |), %1), ansi(hx, HIDDEN), @@(Nothing to see here.))], 19)]
             [rjust([ansi(h, Date:)] [u(FUNCTION`GET_DATE, elements(%q0, 6, |))], 39)]%r
             [edit(elements(%q0, 4, |), &quot;, ")],
 
