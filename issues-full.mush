@@ -211,7 +211,7 @@ $+issue *:
     @pemit %#=u(FUNCTION`HEADER, Issue %q0);
     @pemit %#=ulocal(VIEW`ISSUE_SUMMARY, %q0);
     think setq(1, u(FUNCTION`GET_NOTES, %q0));
-    @pemit %#=list(%q1, ulocal(VIEW`ISSUE_NOTE, ##, %#, 1));
+    @pemit %#=list(%q1, ulocal(VIEW`ISSUE_NOTE, ##, %#));
     @pemit %#=u(FUNCTION`FOOTER);
     @trigger %!/TRIGGER`ISSUE_VIEWED=%#, %q0;
 -
@@ -232,7 +232,7 @@ $+issue/full *:
     @pemit %#=u(FUNCTION`HEADER, Issue %q0);
     @pemit %#=ulocal(VIEW`ISSUE_SUMMARY, %q0);
     think setq(1, u(FUNCTION`GET_NOTES, %q0));
-    @pemit %#=list(%q1, ulocal(VIEW`ISSUE_NOTE, ##, %#));
+    @pemit %#=list(%q1, ulocal(VIEW`ISSUE_NOTE, ##, %#, 1));
     @pemit %#=u(FUNCTION`FOOTER);
     @trigger %!/TRIGGER`ISSUE_VIEWED=%#, %q0;
 -
