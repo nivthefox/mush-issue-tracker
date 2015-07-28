@@ -211,7 +211,7 @@ $+issue *:
     @pemit %#=u(FUNCTION`HEADER, Issue %q0);
     @pemit %#=ulocal(VIEW`ISSUE_SUMMARY, %q0);
     think setq(1, u(FUNCTION`GET_NOTES, %q0));
-    @pemit %#=list(%q1, ulocal(VIEW`ISSUE_NOTE, ##, %#));
+    @pemit %#=list(%q1, ulocal(VIEW`ISSUE_NOTE, ##, %#, 1));
     @pemit %#=u(FUNCTION`FOOTER);
     @trigger %!/TRIGGER`ISSUE_VIEWED=%#, %q0;
 -
@@ -221,6 +221,22 @@ $+issue *:
 $+issue/add *=*:
     @trigger %!/TRIGGER`ADD_NOTE=%#, %0, %1, ADD;
 -
+
+# +issue/full <id>
+&COMMAND`ISSUE_FULL_VIEW [v(ISS`GLOBAL)]=
+$+issue/full *:
+    @assert u(FUNCTION`IS_USER, %#)={@pemit %#=Permission denied.};
+    think setq(0, secure(trim(%0)));
+    @assert u(FUNCTION`IS_ISSUE, %q0)={@pemit %#=Invalid issue.};
+    @assert cor(u(FUNCTION`IS_ADMIN, %#), u(FUNCTION`IS_MEMBER, %#, %q0))={@pemit %#=You do not have access to that issue.};
+    @pemit %#=u(FUNCTION`HEADER, Issue %q0);
+    @pemit %#=ulocal(VIEW`ISSUE_SUMMARY, %q0);
+    think setq(1, u(FUNCTION`GET_NOTES, %q0));
+    @pemit %#=list(%q1, ulocal(VIEW`ISSUE_NOTE, ##, %#));
+    @pemit %#=u(FUNCTION`FOOTER);
+    @trigger %!/TRIGGER`ISSUE_VIEWED=%#, %q0;
+-
+
 
 # +issue/status <id>=<status>
 &COMMAND`ISSUE/SET [v(ISS`GLOBAL)]=
@@ -566,7 +582,7 @@ think [ansi(h, ISSUES:)] Setting up views.
     [setq(0, sql(u(QUERY`SELECT_NOTE, WHERE `id`=%0), |))]
 
     [ifelse(
-        cor(%1, ulocal(FUNCTION`IS_VISIBLE_NOTE, elements(%q0, 5, |), elements(%q0, 3, |), %1)),
+        cor(%2, ulocal(FUNCTION`IS_VISIBLE_NOTE, elements(%q0, 5, |), elements(%q0, 3, |), %1)),
         
         [repeat(-, sub(68, strlen(elements(%q0, 1, |))))] <#[elements(%q0, 1, |)]> -----%r
         [ifelse(
