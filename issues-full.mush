@@ -312,8 +312,8 @@ think [ansi(h, ISSUES:)] Setting up functions.
 &FUNCTION`GET_VISIBLE_ISSUES [v(ISS`GLOBAL)]=
     ifelse(
         u(FUNCTION`IS_ADMIN, %0),
-        sql(u(QUERY`SELECT_ISSUES_BY_CATEGORY, filter(FUNCTION`HAS_ACCESS, lcon(%vC), %b, %b, %0,))),
-        sql(u(QUERY`SELECT_ISSUES_BY_MEMBER, %0))
+        sql(u(QUERY`SELECT_ISSUES_BY_CATEGORY, filter(FUNCTION`HAS_ACCESS, lcon(%vC), %b, %b, %0,), AND `status` <> "CLOSED")),
+        sql(u(QUERY`SELECT_ISSUES_BY_MEMBER, %0, AND `status` <> "CLOSED"))
     )
 -
 
@@ -426,6 +426,7 @@ think [ansi(h, ISSUES:)] Setting up queries.
     SELECT `id`
     FROM `[v(DATA`TABLE_PREFIX)]issue`
     WHERE `category` IN ([iter(%0, "##", , \,)])
+    %1
 -
 
 &QUERY`SELECT_ISSUES_BY_MEMBER [v(ISS`GLOBAL)]=
@@ -433,6 +434,7 @@ think [ansi(h, ISSUES:)] Setting up queries.
     FROM `[v(DATA`TABLE_PREFIX)]issue`
     JOIN `[v(DATA`TABLE_PREFIX)]issue_member`
     WHERE `[v(DATA`TABLE_PREFIX)]issue_member`.`member`="%0"
+    %1
 -
 
 &QUERY`SELECT_ISSUE [v(ISS`GLOBAL)]=
